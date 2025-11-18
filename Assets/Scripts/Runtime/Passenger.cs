@@ -21,26 +21,28 @@ namespace BusUnjam
         [SerializeField] private int _specifiedOutlineMaterialIndex;
     
         private SkinnedMeshRenderer _skinnedMeshRenderer;
-        private MaterialPropertyBlock _mpb;
+        private MaterialPropertyBlock _mpbColor;
+        private MaterialPropertyBlock _mpbOutline;
 
         private void Awake()
         {
             _skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
-            _mpb = new MaterialPropertyBlock();
+            _mpbColor = new MaterialPropertyBlock();
+            _mpbOutline = new MaterialPropertyBlock();
+            _skinnedMeshRenderer.GetPropertyBlock(_mpbColor, _specifiedColorMaterialIndex);
+            _skinnedMeshRenderer.GetPropertyBlock(_mpbOutline, _specifiedOutlineMaterialIndex);
         }
 
         public void SetColor(Color color)
         {
-            _skinnedMeshRenderer.GetPropertyBlock(_mpb, _specifiedColorMaterialIndex);
-            _mpb.SetColor(Constants.ShaderColorID, color);
-            _skinnedMeshRenderer.SetPropertyBlock(_mpb, _specifiedColorMaterialIndex);
+            _mpbColor.SetColor(Constants.ShaderColorID, color);
+            _skinnedMeshRenderer.SetPropertyBlock(_mpbColor, _specifiedColorMaterialIndex);
         }
         
         public void ToggleOutline(bool toggle)
         {
-            _skinnedMeshRenderer.GetPropertyBlock(_mpb, _specifiedOutlineMaterialIndex);
-            _mpb.SetColor(Constants.ShaderColorID, toggle ? Color.black : Color.clear);
-            _skinnedMeshRenderer.SetPropertyBlock(_mpb, _specifiedOutlineMaterialIndex);
+            _mpbOutline.SetColor(Constants.ShaderColorID, toggle ? Color.black : Color.clear);
+            _skinnedMeshRenderer.SetPropertyBlock(_mpbOutline, _specifiedOutlineMaterialIndex);
         }
     }
 }

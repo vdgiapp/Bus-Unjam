@@ -14,13 +14,13 @@ namespace BusUnjam
         private Vector3 _originalScale;
         private float _phase;
 
-        void Awake()
+        private void Awake()
         {
             _originalScale = transform.localScale;
             _phase = phaseOffset;
         }
 
-        void Update()
+        private void Update()
         {
             _phase += Time.deltaTime * frequency * Mathf.PI * 2f; // convert freq (Hz) -> rad/s
             float s = Mathf.Sin(_phase); // in [-1,1]

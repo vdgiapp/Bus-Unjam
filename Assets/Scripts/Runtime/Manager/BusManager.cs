@@ -72,9 +72,9 @@ namespace BusUnjam
         {
             for (int i = 0; i < BUS_POOL_SIZE; i++)
             {
-                GameObject newBusObj = Instantiate(_busPrefab, transform);
-                newBusObj.SetActive(false);
-                Bus bus = newBusObj.GetComponent<Bus>();
+                GameObject busGameObject = Instantiate(_busPrefab, transform);
+                busGameObject.SetActive(false);
+                Bus bus = busGameObject.GetComponent<Bus>();
                 if (bus == null)
                 {
                     Debug.LogError("There is no bus component in bus prefab!.");
@@ -82,7 +82,7 @@ namespace BusUnjam
                 }
                 _busPool.Add(bus);
             }
-            Debug.Log($"Initialized Bus Pool with {BUS_POOL_SIZE} buses.");
+            Debug.Log($"Initialized bus pool with {BUS_POOL_SIZE} buses.");
         }
 
         public void LoadBusFromLevel(LevelData levelData)
@@ -135,7 +135,7 @@ namespace BusUnjam
             Bus bus = GetBusFromPool();
             if (bus == null)
             {
-                Debug.LogWarning("Cannot spawn new bus. The queue is full!");
+                Debug.LogWarning("Cannot spawn new bus. Active queue is full!");
                 return false;
             }
             bus.transform.localPosition = new Vector3(-1f * _remainActiveBuses.Count * BUS_DISTANCE, 0, 0);

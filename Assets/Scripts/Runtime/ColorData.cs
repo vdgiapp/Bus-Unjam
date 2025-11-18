@@ -25,7 +25,6 @@ namespace BusUnjam
     [CreateAssetMenu(fileName = "ColorData", menuName = "Bus Unjam/Color Data")]
     public class ColorDataSO : ScriptableObject
     {
-        public Material outlineMaterial;
         public List<ColorData> colorDataList = new();
     }
 }

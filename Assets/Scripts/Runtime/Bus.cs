@@ -22,6 +22,7 @@ namespace BusUnjam
         {
             _meshRenderer = GetComponentInChildren<MeshRenderer>();
             _mpb = new MaterialPropertyBlock();
+            _meshRenderer.GetPropertyBlock(_mpb, _specifiedColorMaterialIndex);
         }
 
         public bool IsFull() => GetNextAvailableSeatIndex() == -1;
@@ -41,7 +42,6 @@ namespace BusUnjam
 
         public void SetColor(Color color)
         {
-            _meshRenderer.GetPropertyBlock(_mpb, _specifiedColorMaterialIndex);
             _mpb.SetColor(Constants.ShaderColorID, color);
             _meshRenderer.SetPropertyBlock(_mpb, _specifiedColorMaterialIndex);
         }
