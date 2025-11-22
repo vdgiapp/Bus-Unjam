@@ -166,11 +166,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09ff16519ca744468063d23ee7fe15b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mainCamera: {fileID: 0}
   _themes: {fileID: 11400000, guid: bf0aafaf4ce02d645a26002d1f70b94b, type: 2}
-  _levels: {fileID: 11400000, guid: 6139c390ca6bd934f812f9ee5c0b1f87, type: 2}
   _colors: {fileID: 11400000, guid: e90a2339306cbc449a82d67eac1c6c89, type: 2}
-  _loadingOverlay: {fileID: 0}
+  selectedThemeType: 0
 --- !u!1 &4450810432489679007
 GameObject:
   m_ObjectHideFlags: 0

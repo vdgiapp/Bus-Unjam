@@ -9,7 +9,9 @@ namespace BusUnjam
     [DisallowMultipleComponent]
     public class VehicleManager : MonoBehaviour
     {
-        public event Action OnAllLevelVehicleLoaded;
+        private const float VEHICLE_DISTANCE = 4.3f;
+        private const int VEHICLE_POOL_SIZE = 5;
+
         public event Action<Vehicle> OnVehicleArrived;
         public event Action OnAllVehicleDone; // level complete
 
@@ -28,7 +30,7 @@ namespace BusUnjam
             
             GameObject prefab = GameManager.GetCurrentTheme().GetVehiclePrefab();
             GameObject[] loaded = 
-                await InstantiateAsync(prefab, Constants.VehiclePoolSize, _vehicleContainer)
+                await InstantiateAsync(prefab, VEHICLE_POOL_SIZE, _vehicleContainer)
                     .ToUniTask();
             
             // Add to vehicle pool and hide it
@@ -38,7 +40,6 @@ namespace BusUnjam
                 v.gameObject.SetActive(false);
                 _vehiclePool.Add(v);
             }
-            Debug.Log($"Initialized vehicle pool with {Constants.VehiclePoolSize} vehicles.");
 
             // Spawn vehicle from level data
             foreach (VehicleData data in levelData.vehicles)
@@ -49,8 +50,6 @@ namespace BusUnjam
                 }
             }
             _currentVehicle = (GetActiveVehicles() > 0) ? _vehicleActive[0] : null;
-            
-            OnAllLevelVehicleLoaded?.Invoke();
         }
 
         public bool TrySpawnNewVehicle()
@@ -74,8 +73,7 @@ namespace BusUnjam
             if (_currentVehicle != null && _currentVehicle.data != null && _currentVehicle.IsFull())
             {
                 await MoveToNextDestinationAsync();
-                bool spawned = TrySpawnNewVehicle();
-                if (!spawned && !HasBuses())
+                if (!TrySpawnNewVehicle() && !HasBuses())
                 {
                     // Level complete
                     OnAllVehicleDone?.Invoke();
@@ -97,7 +95,7 @@ namespace BusUnjam
             veh.Reset();
             veh.data = data;
             
-            veh.transform.localPosition = new Vector3(-1f * GetActiveVehicles() * Constants.VehicleDistance, 0.0f, 0.0f);
+            veh.transform.localPosition = new Vector3(-1f * GetActiveVehicles() * VEHICLE_DISTANCE, 0.0f, 0.0f);
             veh.SetColor(GameManager.GetColorByType(data.colorType));
             veh.gameObject.SetActive(true);
             
@@ -152,12 +150,12 @@ namespace BusUnjam
             Vector3 pos = veh.transform.position;
             if (index == 0)
             {
-                pos.x = 2.5f * Constants.VehicleDistance;
+                pos.x = 2.5f * VEHICLE_DISTANCE;
                 await veh.MoveLocalTo(pos, _moveDuration);
             }
             else
             {
-                pos.x = -1.0f * (index - 1) * Constants.VehicleDistance;
+                pos.x = -1.0f * (index - 1) * VEHICLE_DISTANCE;
                 await veh.MoveLocalTo(pos, _moveDuration, Ease.OutQuad);
             }
         }

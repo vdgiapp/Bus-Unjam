@@ -7,7 +7,7 @@ namespace BusUnjam
 {
     public static class Utilities
     {
-        public static bool IsCellTypeOccupied(eCellType type)
+        public static bool IsCellTypeIgnoreOccupied(eCellType type)
         {
             return type is
                 eCellType.None 

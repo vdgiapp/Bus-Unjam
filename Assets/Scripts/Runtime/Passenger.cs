@@ -18,6 +18,7 @@ namespace BusUnjam
         [SerializeField] private int _specifiedColorMaterialIndex;
     
         private MaterialPropertyBlock _mpbColor;
+        private Tween _rotateTween;
 
         private void Awake()
         {
@@ -49,14 +50,12 @@ namespace BusUnjam
             if (direction.sqrMagnitude > 0.0001f)
             {
                 Quaternion lookRot = Quaternion.LookRotation(direction);
-                transform
-                    .DORotateQuaternion(lookRot, ROTATE_DURATION)
-                    .SetEase(Ease.OutQuad);
+                _rotateTween?.Kill();
+                _rotateTween = transform.DORotateQuaternion(lookRot, ROTATE_DURATION).SetEase(Ease.OutQuad);
             }
-            await transform
-                .DOMove(target, duration)
-                .SetEase(ease)
-                .ToUniTask();
+            await transform.DOMove(target, duration).SetEase(ease).ToUniTask();
+            _rotateTween?.Kill();
+            _rotateTween = transform.DOLocalRotateQuaternion(Quaternion.identity, ROTATE_DURATION);
         }
     }
 

@@ -8,7 +8,7 @@ namespace BusUnjam
     [DisallowMultipleComponent]
     public class PassengerManager : MonoBehaviour
     {
-        public event Action OnAllLevelPassengerLoaded;
+        private const float PASSENGER_DISTANCE = 0.6f;
         
         [SerializeField] private Transform _passengerContainer;
         [SerializeField] private Transform _cellContainer;
@@ -34,17 +34,16 @@ namespace BusUnjam
                     CellData cellData = levelData.GetCellData(r, c);
                     PassengerData data = levelData.GetPassengerData(r, c);
                     // TODO: Variant type handle
-                    if (!Utilities.IsCellTypeOccupied(cellData.cellType))
+                    if (!Utilities.IsCellTypeIgnoreOccupied(cellData.cellType))
                         tasks.Add(LoadSinglePassengerAsync(r, c, data));
                 }
             }
             await UniTask.WhenAll(tasks);
-            OnAllLevelPassengerLoaded?.Invoke();
         }
 
         private async UniTask LoadSinglePassengerAsync(int row, int col, PassengerData data)
         {
-            Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, row, col, Constants.CellDistance, _cellContainer.position);
+            Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, row, col, PASSENGER_DISTANCE, _cellContainer.position);
             GameObject prefab = GameManager.GetCurrentTheme().GetPassengerPrefabByType(data.passengerType);
             GameObject[] loaded = 
                 await InstantiateAsync(prefab, _passengerContainer, worldPosition, Quaternion.identity)

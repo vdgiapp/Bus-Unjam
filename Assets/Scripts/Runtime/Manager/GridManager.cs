@@ -8,9 +8,8 @@ namespace BusUnjam
     [DisallowMultipleComponent]
     public class GridManager : MonoBehaviour
     {
-        public event Action OnAllLevelCellLoaded;
-        public event Action OnAllLevelWaitingTileLoaded;
-
+        private const float CELL_DISTANCE = 0.6f;
+        
         [SerializeField] private Transform _waitingContainer;
         [SerializeField] private Transform _cellContainer;
         
@@ -41,13 +40,11 @@ namespace BusUnjam
                 }
             }
             await UniTask.WhenAll(tasks);
-            
-            OnAllLevelCellLoaded?.Invoke();
         }
 
         private async UniTask LoadSingleCellAsync(int row, int col, CellData data)
         {
-            Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, row, col, Constants.CellDistance, _cellContainer.position);
+            Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, row, col, CELL_DISTANCE, _cellContainer.position);
             GameObject prefab = GameManager.GetCurrentTheme().GetCellPrefabByType(data.cellType);
             GameObject[] loaded =
                 await InstantiateAsync(prefab, _cellContainer, worldPosition, Quaternion.identity)
@@ -65,13 +62,12 @@ namespace BusUnjam
             UniTask[] tasks = new UniTask[size];
             for (int i = 0; i < size; i++) tasks[i] = LoadSingleWaitingTileAsync(i, half);
             await UniTask.WhenAll(tasks);
-            OnAllLevelWaitingTileLoaded?.Invoke();
         }
 
         private async UniTask LoadSingleWaitingTileAsync(int index, float half)
         {
             // Compute world position for each waiting slot
-            Vector3 pos = _waitingContainer.position + new Vector3((index - half) * Constants.CellDistance, 0f, 0f);
+            Vector3 pos = _waitingContainer.position + new Vector3((index - half) * CELL_DISTANCE, 0f, 0f);
             GameObject prefab = GameManager.GetCurrentTheme().GetWaitingTilePrefab();
             GameObject[] loaded =
                 await InstantiateAsync(prefab, _waitingContainer, pos, Quaternion.identity)
@@ -122,7 +118,7 @@ namespace BusUnjam
                     
                     if (c == null || c.data == null) continue;
                     if (c.data.isOccupied) continue;
-                    if (Utilities.IsCellTypeOccupied(c.data.cellType)) continue;
+                    if (Utilities.IsCellTypeIgnoreOccupied(c.data.cellType)) continue;
                     
                     travelDictionary[next] = current;
                     bfsQueue.Enqueue(next);

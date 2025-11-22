@@ -167,6 +167,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cellContainer: {fileID: 428144341}
+  gridManager: {fileID: 1435189689}
+  passengerManager: {fileID: 1355942482}
+  vehicleManager: {fileID: 1818808353}
 --- !u!1 &428144340
 GameObject:
   m_ObjectHideFlags: 0

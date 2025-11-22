@@ -8,9 +8,20 @@ namespace BusUnjam
     [DisallowMultipleComponent]
     public class LevelHandler : MonoBehaviour
     {
-        private const float PASSENGER_VELOCITY = 2f;
+        public static LevelHandler instance { get; private set; }
+
+        private const float MAX_RAYCAST_DISTANCE = 1000f;
+        private const float PASSENGER_SPEED = 2f;
+        private const string PASSENGER_WAITING_TAG = "PassengerWaiting";
+        private const string PASSENGER_LAYER_NAME = "Passenger";
+        private const string CELL_LAYER_NAME = "Cell";
         
         [SerializeField] private Transform _cellContainer;
+        
+        [Header("Managers")]
+        [SerializeField] private GridManager gridManager;
+        [SerializeField] private PassengerManager passengerManager;
+        [SerializeField] private VehicleManager vehicleManager;
         
         private readonly List<Passenger> _waitingPassengers = new(); // who's waiting (null = not wait/not occupied)
         private readonly Queue<Passenger> _readyPassengers = new(); // who's ready to get on the vehicle :)))
@@ -18,101 +29,109 @@ namespace BusUnjam
         private int _rows;
         private int _columns;
 
-        // Manual enable events in GameManager
-        public void EnableSignal()
+        private bool _isLevelInit = false;
+        private bool _isLevelEnded = false;
+
+        private void Awake()
         {
-            // Load
-            GameManager.gridManager.OnAllLevelCellLoaded += AllLevelCellLoadHandle;
-            GameManager.gridManager.OnAllLevelWaitingTileLoaded += AllLevelWaitingTileLoadHandle;
-            GameManager.passengerManager.OnAllLevelPassengerLoaded += AllLevelPassengerLoadHandle;
-            GameManager.vehicleManager.OnAllLevelVehicleLoaded += AllLevelVehicleLoadHandle;
-        }
-        
-        // Auto disable events
-        private void OnDestroy()
-        {
-            // Load
-            GameManager.gridManager.OnAllLevelCellLoaded -= AllLevelCellLoadHandle;
-            GameManager.gridManager.OnAllLevelWaitingTileLoaded -= AllLevelWaitingTileLoadHandle;
-            GameManager.passengerManager.OnAllLevelPassengerLoaded -= AllLevelPassengerLoadHandle;
-            GameManager.vehicleManager.OnAllLevelVehicleLoaded -= AllLevelVehicleLoadHandle;
+            instance = this;
+
+            vehicleManager.OnVehicleArrived += VehicleArrivedHandle;
+            vehicleManager.OnAllVehicleDone += LevelCompleteHandle;
         }
 
         private void Update()
         {
-            HandleMouseClick();
+            ClickCheck();
         }
         
-        public async UniTask LoadLevelData(LevelData levelData)
+        private void OnDestroy()
+        {
+            
+            vehicleManager.OnVehicleArrived -= VehicleArrivedHandle;
+            vehicleManager.OnAllVehicleDone -= LevelCompleteHandle;
+        }
+
+        public async UniTask InitLevel(LevelData levelData)
         {
             _rows = levelData.rows;
             _columns = levelData.columns;
 
-            for (int i = 0; i < levelData.waitAreaSize; i++) _waitingPassengers.Add(null);
+            for (int i = 0; i < levelData.waitAreaSize; i++)
+                _waitingPassengers.Add(null);
 
             UniTask[] tasks = {
-                GameManager.gridManager.LoadCellFromLevelAsync(levelData),
-                GameManager.gridManager.LoadWaitingTileAsync(levelData),
-                GameManager.passengerManager.LoadPassengerFromLevelAsync(levelData),
-                GameManager.vehicleManager.LoadVehicleFromLevelAsync(levelData),
+                gridManager.LoadCellFromLevelAsync(levelData),
+                gridManager.LoadWaitingTileAsync(levelData),
+                passengerManager.LoadPassengerFromLevelAsync(levelData),
+                vehicleManager.LoadVehicleFromLevelAsync(levelData),
             };
             await UniTask.WhenAll(tasks);
+            _isLevelInit = true;
         }
 
-        private void AllLevelCellLoadHandle()
+        // ReSharper disable Unity.PerformanceAnalysis
+        // TODO: Sử dụng event để bắt sự kiện khi click
+        private void ClickCheck()
         {
-            Debug.Log("All level's cells loaded.");
-        }
-        
-        private void AllLevelWaitingTileLoadHandle()
-        {
-            Debug.Log("All level's waiting tiles loaded.");
-        }
-        
-        private void AllLevelPassengerLoadHandle()
-        {
-            Debug.Log("All level's passengers loaded.");
-        }
-        
-        private void AllLevelVehicleLoadHandle()
-        {
-            Debug.Log("All level's vehicles loaded.");
-        }
-
-        private void HandleMouseClick()
-        {
+            if (!_isLevelInit) return;
             if (Input.GetMouseButtonDown(0))
             {
-                RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                int checkLayers = LayerMask.GetMask("Passenger", "Cell");
-                if (Physics.Raycast(ray, out hit, 100f, checkLayers))
+                
+                // Clicked to cell or passenger in that cell
+                int checkLayers = LayerMask.GetMask(PASSENGER_LAYER_NAME, CELL_LAYER_NAME);
+
+                if (!Physics.Raycast(ray, out RaycastHit hit, MAX_RAYCAST_DISTANCE, checkLayers)) return;
+                if (HasPassengerWaitingTag(hit.transform.gameObject)) return;
+                
+                int row = -1;
+                int col = -1;
+                string layerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
+                if (layerName == "Passenger")
                 {
-                    string layerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
-                    if (layerName == "Passenger")
+                    Passenger p = hit.collider.GetComponent<Passenger>();
+                    if (p != null)
                     {
-                        Passenger p = hit.collider.GetComponent<Passenger>();
-                        if (p != null)
-                        {
-                            var pos = GameManager.passengerManager.GetGridPositionOfPassenger(p);
-                            if (pos == null) return;
-                            GridClickHandleAsync(pos.Value.x, pos.Value.y).Forget();
-                        }
-                    }
-                    else if (layerName == "Cell")
-                    {
-                        Cell c = hit.collider.GetComponent<Cell>();
-                        if (c != null)
-                        {
-                            var pos = GameManager.gridManager.GetGridPositionOfCell(c);
-                            if (pos == null) return;
-                            GridClickHandleAsync(pos.Value.x, pos.Value.y).Forget();
-                        }
+                        Vector2Int? pos = passengerManager.GetGridPositionOfPassenger(p);
+                        if (pos == null) return;
+                        row = pos.Value.x;
+                        col = pos.Value.y;
                     }
                 }
+                else if (layerName == "Cell")
+                {
+                    Cell c = hit.collider.GetComponent<Cell>();
+                    if (c != null)
+                    {
+                        Vector2Int? pos = gridManager.GetGridPositionOfCell(c);
+                        if (pos == null) return;
+                        row = pos.Value.x;
+                        col = pos.Value.y;
+                    }
+                }
+                GridClickHandle(row, col);
             }
         }
 
+        private void GridClickHandle(int r, int c)
+        {
+            if (r == -1 || c == -1) return;
+            
+            
+        }
+
+        private void VehicleArrivedHandle(Vehicle v)
+        {
+            
+        }
+
+        private void LevelCompleteHandle()
+        {
+            
+        }
+
+        /*
         private async UniTask GridClickHandleAsync(int r, int c)
         {
             if (GameManager.IsGameOver()) return;
@@ -217,9 +236,16 @@ namespace BusUnjam
             p.SetRunning(false);
             
             // Check for level failed
-            Debug.Log("reached goto waiting area / level fail check");
+            Debug.Log("reached waiting area / level fail check");
         }
+        */
 
+        private bool HasPassengerWaitingTag(GameObject go)
+            => go.CompareTag("PassengerWaiting");
+        
+        private float GetMoveDuration(Vector3 from, Vector3 to, float speed)
+            => (Vector3.Distance(from, to) / speed);
+        
         private bool HasReadyPassenger() => _readyPassengers.Count > 0;
 
         private void EmptyFreeWaitingIndex(int index) => _waitingPassengers[index] = null;
@@ -258,7 +284,7 @@ namespace BusUnjam
             for (int i = 0; i < freeSlotCount; i++)
             {
                 int slot = freeSlots[i];
-                Vector3? tilePos = GameManager.gridManager.GetPositionOfWaitingTileIndex(slot);
+                Vector3? tilePos = gridManager.GetPositionOfWaitingTileIndex(slot);
                 if (tilePos == null) continue;
 
                 float dist = Vector3.Distance(tilePos.Value, p.transform.position);
