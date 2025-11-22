@@ -1,36 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace BusUnjam
 {
-    [Serializable]
-    public enum ePassengerType
-    {
-        Normal = 0,
-        Reversed
-    }
-    
-    [Serializable]
     public class Passenger : MonoBehaviour
     {
-        [HideInInspector] public eColorType colorType;
-        [HideInInspector] public ePassengerType passengerType;
+        private const float ROTATE_DURATION = 0.2f;
         
+        [HideInInspector] public PassengerData data;
+
+        [SerializeField] private Animator _animator;
+        [SerializeField] private SkinnedMeshRenderer _skinnedMeshRenderer;
         [SerializeField] private int _specifiedColorMaterialIndex;
-        [SerializeField] private int _specifiedOutlineMaterialIndex;
     
-        private SkinnedMeshRenderer _skinnedMeshRenderer;
         private MaterialPropertyBlock _mpbColor;
-        private MaterialPropertyBlock _mpbOutline;
 
         private void Awake()
         {
-            _skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
             _mpbColor = new MaterialPropertyBlock();
-            _mpbOutline = new MaterialPropertyBlock();
             _skinnedMeshRenderer.GetPropertyBlock(_mpbColor, _specifiedColorMaterialIndex);
-            _skinnedMeshRenderer.GetPropertyBlock(_mpbOutline, _specifiedOutlineMaterialIndex);
         }
 
         public void SetColor(Color color)
@@ -38,11 +30,47 @@ namespace BusUnjam
             _mpbColor.SetColor(Constants.ShaderColorID, color);
             _skinnedMeshRenderer.SetPropertyBlock(_mpbColor, _specifiedColorMaterialIndex);
         }
-        
-        public void ToggleOutline(bool toggle)
+
+        public void SetRunning(bool running)
         {
-            _mpbOutline.SetColor(Constants.ShaderColorID, toggle ? Color.black : Color.clear);
-            _skinnedMeshRenderer.SetPropertyBlock(_mpbOutline, _specifiedOutlineMaterialIndex);
+            _animator.SetBool(Constants.AnimatorIsRunningID, running);
         }
+        
+        public void TriggerSitting(bool isRunning = true)
+        {
+            if (!isRunning) return;
+            _animator.SetTrigger(Constants.AnimatorIsSittingID);
+        }
+
+        public async UniTask MoveTo(Vector3 worldPosition, float duration, Ease ease = Ease.Linear)
+        {
+            Vector3 target = new(worldPosition.x, transform.position.y, worldPosition.z);
+            Vector3 direction = target - transform.position;
+            if (direction.sqrMagnitude > 0.0001f)
+            {
+                Quaternion lookRot = Quaternion.LookRotation(direction);
+                transform
+                    .DORotateQuaternion(lookRot, ROTATE_DURATION)
+                    .SetEase(Ease.OutQuad);
+            }
+            await transform
+                .DOMove(target, duration)
+                .SetEase(ease)
+                .ToUniTask();
+        }
+    }
+
+    [Serializable]
+    public class PassengerData
+    {
+        public eColorType colorType;
+        public ePassengerType passengerType;
+    }
+    
+    [Serializable]
+    public enum ePassengerType
+    {
+        Normal = 0,
+        Reversed
     }
 }

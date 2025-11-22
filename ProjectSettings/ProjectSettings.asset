@@ -165,6 +165,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.JustGiapp.BusUnjam
     Standalone: com.JustGiapp.Bus-Unjam
+    iPhone: com.JustGiapp.Bus-Unjam
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -288,7 +289,14 @@ PlayerSettings:
   AndroidMinifyDebug: 0
   AndroidValidateAppBundleSize: 1
   AndroidAppBundleSizeToValidate: 150
-  m_BuildTargetIcons: []
+  m_BuildTargetIcons:
+  - m_BuildTarget: 
+    m_Icons:
+    - serializedVersion: 2
+      m_Icon: {fileID: 2800000, guid: eb97e89920e965c4fb84303e71c91f26, type: 3}
+      m_Width: 128
+      m_Height: 128
+      m_Kind: 0
   m_BuildTargetPlatformIcons:
   - m_BuildTarget: iPhone
     m_Icons:
@@ -842,7 +850,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: DOTWEEN
+    Android: DOTWEEN;UNITASK_DOTWEEN_SUPPORT
     EmbeddedLinux: DOTWEEN
     GameCoreScarlett: DOTWEEN
     GameCoreXboxOne: DOTWEEN
@@ -851,18 +859,19 @@ PlayerSettings:
     PS4: DOTWEEN
     PS5: DOTWEEN
     QNX: DOTWEEN
-    Server: UNITASK_DOTWEEN_SUPPORT
+    Server: DOTWEEN;UNITASK_DOTWEEN_SUPPORT
     Stadia: DOTWEEN
     Standalone: DOTWEEN;UNITASK_DOTWEEN_SUPPORT
     VisionOS: DOTWEEN
     WebGL: DOTWEEN
     Windows Store Apps: DOTWEEN
     XboxOne: DOTWEEN
-    iPhone: DOTWEEN
+    iPhone: DOTWEEN;UNITASK_DOTWEEN_SUPPORT
     tvOS: DOTWEEN
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
+    Android: 1
     Server: 1
   il2cppCompilerConfiguration: {}
   il2cppCodeGeneration: {}
