@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [Serializable]
     public enum eColorType

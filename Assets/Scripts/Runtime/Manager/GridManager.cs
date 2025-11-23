@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [DisallowMultipleComponent]
     public class GridManager : MonoBehaviour
     {
-        private const float CELL_DISTANCE = 0.6f;
-        
         [SerializeField] private Transform _waitingContainer;
         [SerializeField] private Transform _cellContainer;
         
@@ -24,9 +22,9 @@ namespace BusUnjam
         public async UniTask LoadCellFromLevelAsync(LevelData levelData)
         {
             if (levelData == null || levelData.cells == null || levelData.cells.Length == 0) return;
+            
             _rows = levelData.rows;
             _columns = levelData.columns;
-
             _cells = new Cell[_rows, _columns];
             
             List<UniTask> tasks = new();
@@ -44,7 +42,7 @@ namespace BusUnjam
 
         private async UniTask LoadSingleCellAsync(int row, int col, CellData data)
         {
-            Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, row, col, CELL_DISTANCE, _cellContainer.position);
+            Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, row, col, Constants.CELL_DISTANCE, _cellContainer.position);
             GameObject prefab = GameManager.GetCurrentTheme().GetCellPrefabByType(data.cellType);
             GameObject[] loaded =
                 await InstantiateAsync(prefab, _cellContainer, worldPosition, Quaternion.identity)
@@ -60,14 +58,17 @@ namespace BusUnjam
             int size = levelData.waitAreaSize;
             float half = (size - 1) / 2f;
             UniTask[] tasks = new UniTask[size];
-            for (int i = 0; i < size; i++) tasks[i] = LoadSingleWaitingTileAsync(i, half);
+            for (int i = 0; i < size; i++)
+            {
+                tasks[i] = LoadSingleWaitingTileAsync(i, half);
+            }
             await UniTask.WhenAll(tasks);
         }
 
         private async UniTask LoadSingleWaitingTileAsync(int index, float half)
         {
             // Compute world position for each waiting slot
-            Vector3 pos = _waitingContainer.position + new Vector3((index - half) * CELL_DISTANCE, 0f, 0f);
+            Vector3 pos = _waitingContainer.position + new Vector3((index - half) * Constants.CELL_DISTANCE, 0f, 0f);
             GameObject prefab = GameManager.GetCurrentTheme().GetWaitingTilePrefab();
             GameObject[] loaded =
                 await InstantiateAsync(prefab, _waitingContainer, pos, Quaternion.identity)
@@ -79,35 +80,38 @@ namespace BusUnjam
         /// Finds a path from the given start cell to the top row of the cell using BFS. 
         /// Returns a list of cell coordinates to move through, or null if no path exists.
         /// </summary>
-        public IReadOnlyList<Vector2Int> FindPathToFirstRow(int startRow, int startColumn)
+        public IReadOnlyList<Vector2Int> GetPathToFirstRow(int startRow, int startColumn)
         {
             if (!Utilities.IsInBounds(_rows, _columns, startRow, startColumn)) return null;
-            Vector2Int[] directions = 
-            {
-                new Vector2Int(1, 0),   // move down
-                new Vector2Int(-1, 0),  // move up
-                new Vector2Int(0, 1),   // move right
-                new Vector2Int(0, -1)   // move left
-            };
-            Dictionary<Vector2Int, Vector2Int> travelDictionary = new();
-            Queue<Vector2Int> bfsQueue = new();
             
             Vector2Int startPos = new Vector2Int(startRow, startColumn);
             Vector2Int? endPos = null;
+            Dictionary<Vector2Int, Vector2Int> travelDictionary = new();
+            Queue<Vector2Int> bfsQueue = new();
             
-            bfsQueue.Enqueue(startPos);
+            Vector2Int[] directions = {
+                new (1, 0),   // move down
+                new (-1, 0),  // move up
+                new (0, 1),   // move right
+                new (0, -1)   // move left
+            };
+            
             travelDictionary[startPos] = startPos;
+            bfsQueue.Enqueue(startPos);
             
             // Breadth-first search
             while (bfsQueue.Count > 0)
             {
                 Vector2Int current = bfsQueue.Dequeue();
+                
+                // Reached top row
                 if (current.x == 0)
                 {
                     endPos = current;
-                    break; // reached top row
+                    break;
                 }
-                // check valid direction
+                
+                // Check valid direction
                 foreach (Vector2Int dir in directions)
                 {
                     Vector2Int next = current + dir;
@@ -115,7 +119,6 @@ namespace BusUnjam
                     if (travelDictionary.ContainsKey(next)) continue;
                     
                     Cell c = _cells[next.x, next.y];
-                    
                     if (c == null || c.data == null) continue;
                     if (c.data.isOccupied) continue;
                     if (Utilities.IsCellTypeIgnoreOccupied(c.data.cellType)) continue;
@@ -131,31 +134,35 @@ namespace BusUnjam
             return path;
         }
 
-        public void MarkCellEmpty(int row, int col)
+        public void MarkCellEmpty(int row, int column)
         {
-            if (Utilities.IsInBounds(_rows, _columns, row, col))
-                _cells[row, col].data.isOccupied = false; 
+            if (Utilities.IsInBounds(_rows, _columns, row, column))
+            {
+                _cells[row, column].data.isOccupied = false;
+            }
         }
 
-        public Cell GetCellAtGridPosition(int row, int col)
-            => Utilities.IsInBounds(_rows, _columns, row, col) ? _cells[row, col] : null;
+        public Cell GetCellAtGridPosition(int row, int column)
+        {
+            if (Utilities.IsInBounds(_rows, _columns, row, column)) return _cells[row, column];
+            return null;
+        }
 
         public Vector2Int? GetGridPositionOfCell(Cell c)
-            => _cellGridPositions.TryGetValue(c, out Vector2Int pos) ? pos : null;
-
-        public int GetWaitingTileIndexAtPosition(Vector3 pos)
         {
-            for (int i = 0; i < _waitingTilePositions.Count; i++)
-            {
-                if (_waitingTilePositions[i] == pos)
-                    return i;
-            }
+            if (_cellGridPositions.TryGetValue(c, out Vector2Int pos)) return pos;
+            return null;
+        }
+
+        public int GetWaitingTileIndexAtPosition(Vector3 position)
+        {
+            for (int i = 0; i < _waitingTilePositions.Count; i++) if (_waitingTilePositions[i] == position) return i;
             return -1;
         }
 
         public Vector3? GetPositionOfWaitingTileIndex(int index)
         {
-            if (index < 0 && index >= _waitingTilePositions.Count) return null;
+            if (index < 0 || index >= _waitingTilePositions.Count) return null;
             return _waitingTilePositions[index];
         }
     }

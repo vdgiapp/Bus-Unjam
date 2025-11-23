@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [Serializable]
     public class LevelData
@@ -15,20 +15,19 @@ namespace BusUnjam
         [SerializeReference] public VehicleData[] vehicles;
 
         // Helper methods
-        public int Index(int r, int c) => r * columns + c;
-
+        public int Index(int r, int c)
+        {
+            return ((r * columns) + c);
+        }
+        
         public CellData GetCellData(int r, int c)
         {
-            CellData ret = cells[Index(r, c)];
-            if (ret != null) return ret;
-            return null;
+            return cells[Index(r, c)];
         }
 
         public PassengerData GetPassengerData(int r, int c)
         {
-            PassengerData ret = passengers[Index(r, c)];
-            if (ret != null) return ret;
-            return null;
+            return passengers[Index(r, c)];
         }
     }
 }

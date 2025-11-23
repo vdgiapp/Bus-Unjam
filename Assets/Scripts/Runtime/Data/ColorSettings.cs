@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [CreateAssetMenu(fileName = "Colors", menuName = "Bus Unjam/Colors")]
     public class ColorSettingsSO : ScriptableObject

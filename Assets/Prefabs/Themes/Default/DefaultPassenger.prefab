@@ -103,7 +103,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fbf6a4208b8ac49c7bba60e54292bec4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.05
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: fbf6a4208b8ac49c7bba60e54292bec4, type: 3}
       propertyPath: m_LocalPosition.z
@@ -479,7 +479,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: fbf6a4208b8ac49c7bba60e54292bec4, type: 3}
       propertyPath: m_TagString
-      value: Passenger
+      value: Untagged
       objectReference: {fileID: 0}
     - target: {fileID: 1082271958561512970, guid: fbf6a4208b8ac49c7bba60e54292bec4, type: 3}
       propertyPath: m_Layer

@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [DisallowMultipleComponent]
     public class GameManager : MonoBehaviour
@@ -17,14 +17,18 @@ namespace BusUnjam
         private void Start()
         {
             instance = this;
-            LoadMainMenu().Forget();
+            _ = LoadMainMenu();
         }
         
         public static Color GetColorByType(eColorType type)
-            => instance._colors.GetColorByType(type);
+        {
+            return instance._colors.GetColorByType(type);
+        }
         
         public static ThemeData GetCurrentTheme()
-            => instance._themes.GetDataByType(instance._selectedThemeType);
+        {
+            return instance._themes.GetDataByType(instance._selectedThemeType);
+        }
 
         private async UniTask LoadMainMenu()
         {

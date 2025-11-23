@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     public class Cell : MonoBehaviour
     {
@@ -21,29 +21,16 @@ namespace BusUnjam
     [Serializable]
     public class TunnelCellData : CellData
     {
-        public List<Passenger> passengers;
+        public readonly List<Passenger> passengers = new();
     }
     
-    [Serializable]
-    public class HiddenCellData : CellData
-    {
-        public bool isRevealed = false;
-    }
-    
-    [Serializable]
-    public class IcedCellData : CellData
-    {
-        public int iceHealth = 4;
-    }
     
     [Serializable]
     public enum eCellType
     {
         None = -1, // For level designer tool
         Normal,
-        Tunnel,
-        Hidden,
-        Iced
+        Tunnel
         // bla bla, ble ble
     }
 }

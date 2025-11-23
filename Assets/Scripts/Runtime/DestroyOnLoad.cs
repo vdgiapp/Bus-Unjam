@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     public class DestroyOnLoad : MonoBehaviour
     {

@@ -180,7 +180,7 @@ GameObject:
   m_Component:
   - component: {fileID: 428144341}
   m_Layer: 0
-  m_Name: GridStartLine
+  m_Name: GridStartLineZ
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -195,7 +195,7 @@ Transform:
   m_GameObject: {fileID: 428144340}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 8.2}
+  m_LocalPosition: {x: 0, y: 0, z: 8.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -407,7 +407,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1532052881}
   m_Layer: 0
-  m_Name: WaitingStartLine
+  m_Name: WaitingStartLineZ
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -422,7 +422,7 @@ Transform:
   m_GameObject: {fileID: 1532052880}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.1, z: 9.5}
+  m_LocalPosition: {x: 0, y: 0, z: 9.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -469,7 +469,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1645595792}
   m_Layer: 0
-  m_Name: BusLine
+  m_Name: BusLineZ
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -484,7 +484,7 @@ Transform:
   m_GameObject: {fileID: 1645595791}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.6, z: 11}
+  m_LocalPosition: {x: 0, y: 0, z: 11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -535,7 +535,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9db1cdc02644600a86a679d84964c9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _moveDuration: 2
   _vehicleContainer: {fileID: 1645595792}
 --- !u!81 &1032691541550084884
 AudioListener:

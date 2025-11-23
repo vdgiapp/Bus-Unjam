@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [Serializable]
     public class ThemeData
@@ -12,11 +12,20 @@ namespace BusUnjam
         [SerializeField] private CellSettingsSO _cellSettings;
         [SerializeField] private PassengerSettingsSO _passengerSettings;
         
-        public GameObject GetEnvironmentPrefab() => _environmentPrefab;
+        public GameObject GetEnvironmentPrefab()
+        {
+            return _environmentPrefab;
+        }
         
-        public GameObject GetWaitingTilePrefab() => _waitingTilePrefab;
+        public GameObject GetWaitingTilePrefab()
+        {
+            return _waitingTilePrefab;
+        }
 
-        public GameObject GetVehiclePrefab() => _vehiclePrefab;
+        public GameObject GetVehiclePrefab()
+        {
+            return _vehiclePrefab;
+        }
         
         public GameObject GetCellPrefabByType(eCellType type)
         {

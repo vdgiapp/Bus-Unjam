@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [DisallowMultipleComponent]
     public class Bounce : MonoBehaviour

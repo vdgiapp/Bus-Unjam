@@ -5,7 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - FxTemporaire
-  - PassengerWaiting
+  - Waiting
+  - Moving
+  - Sitting
   layers:
   - Default
   - TransparentFX
@@ -16,7 +18,7 @@ TagManager:
   - Passenger
   - Cell
   - WaitingTile
-  - 
+  - Vehicle
   - 
   - 
   - 

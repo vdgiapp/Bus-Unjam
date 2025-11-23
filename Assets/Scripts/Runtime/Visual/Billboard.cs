@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     public class Billboard : MonoBehaviour
     {
@@ -8,7 +8,10 @@ namespace BusUnjam
 
         private void Start()
         {
-            if (_mainCamera == null) _mainCamera = Camera.main;
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main;
+            }
         }
 
         private void LateUpdate()

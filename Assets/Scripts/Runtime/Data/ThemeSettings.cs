@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [CreateAssetMenu(fileName = "Themes", menuName = "Bus Unjam/Themes")]
     public class ThemeSettingsSO : ScriptableObject

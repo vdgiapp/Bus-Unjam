@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [CreateAssetMenu(fileName = "PassengerSettings", menuName = "Bus Unjam/Passenger Settings")]
     public class PassengerSettingsSO : ScriptableObject

@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 4955976658774276724}
   - component: {fileID: 2197418257969122811}
   - component: {fileID: 5202534343995265219}
-  m_Layer: 0
+  - component: {fileID: 7419934053340796008}
+  m_Layer: 9
   m_Name: DefaultVehicle(Bus)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78,6 +79,27 @@ MonoBehaviour:
   amplitudeXZ: 0.0025
   inverseXZ: 1
   phaseOffset: 0
+--- !u!65 &7419934053340796008
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5755579940605254692}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.6, z: 0}
 --- !u!1001 &811096156320803497
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -104,7 +126,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
       propertyPath: m_LocalPosition.z
@@ -142,6 +164,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -8380157826906577798, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: -7511558181221131132, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
       propertyPath: m_Materials.Array.size
       value: 4
@@ -158,9 +184,45 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[4]
       value: 
       objectReference: {fileID: 2100000, guid: b9d224511c652904a8f3bca69f8bfc43, type: 2}
+    - target: {fileID: -4480536939650436367, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -4129688688261844250, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: -568336943670048272, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
       propertyPath: m_Name
       value: BusMesh
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 2007131698159614886, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 2800250516343163423, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 3818207514541660373, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5517278119027652306, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 7024889798322021540, guid: 0b101d40207279e4a94af994d7bbf381, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -203,7 +265,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8656522925563801548, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.47500002
+      value: 0.125
       objectReference: {fileID: 0}
     - target: {fileID: 8656522925563801548, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
       propertyPath: m_LocalPosition.z
@@ -244,6 +306,10 @@ PrefabInstance:
     - target: {fileID: 8656522925564163052, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
       propertyPath: m_Name
       value: CFXR Smoke Source 3D
+      objectReference: {fileID: 0}
+    - target: {fileID: 8656522925564163052, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 8656522925583160108, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
       propertyPath: m_Materials.Array.size
@@ -289,7 +355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.6
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -335,6 +401,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Seat (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -371,7 +441,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.6
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -417,6 +487,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Seat (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -453,7 +527,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.6
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
       propertyPath: m_LocalPosition.z
@@ -498,6 +572,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
       propertyPath: m_Name
       value: Seat
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 0f39c2f47d283514cb7fa3de58383c1e, type: 3}
+      propertyPath: m_Layer
+      value: 9
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

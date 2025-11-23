@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     [DisallowMultipleComponent]
     public class LevelHandler : MonoBehaviour
     {
         public static LevelHandler instance { get; private set; }
-
-        private const float MAX_RAYCAST_DISTANCE = 1000f;
-        private const float PASSENGER_SPEED = 2f;
-        private const string PASSENGER_WAITING_TAG = "PassengerWaiting";
-        private const string PASSENGER_LAYER_NAME = "Passenger";
-        private const string CELL_LAYER_NAME = "Cell";
         
         [SerializeField] private Transform _cellContainer;
         
@@ -23,9 +17,10 @@ namespace BusUnjam
         [SerializeField] private PassengerManager passengerManager;
         [SerializeField] private VehicleManager vehicleManager;
         
-        private readonly List<Passenger> _waitingPassengers = new(); // who's waiting (null = not wait/not occupied)
-        private readonly Queue<Passenger> _readyPassengers = new(); // who's ready to get on the vehicle :)))
+        private readonly List<Passenger> _waitingPassengers = new();
 
+        private int _currentCount = 0;
+        
         private int _rows;
         private int _columns;
 
@@ -37,19 +32,21 @@ namespace BusUnjam
             instance = this;
 
             vehicleManager.OnVehicleArrived += VehicleArrivedHandle;
-            vehicleManager.OnAllVehicleDone += LevelCompleteHandle;
+            vehicleManager.OnAllVehicleDone += AllVehicleDoneHandle;
         }
 
         private void Update()
         {
-            ClickCheck();
+            if (_isLevelInit && !_isLevelEnded && Input.GetMouseButtonDown(0))
+            {
+                PlayerClickedHandle();
+            }
         }
-        
+
         private void OnDestroy()
         {
-            
             vehicleManager.OnVehicleArrived -= VehicleArrivedHandle;
-            vehicleManager.OnAllVehicleDone -= LevelCompleteHandle;
+            vehicleManager.OnAllVehicleDone -= AllVehicleDoneHandle;
         }
 
         public async UniTask InitLevel(LevelData levelData)
@@ -58,7 +55,9 @@ namespace BusUnjam
             _columns = levelData.columns;
 
             for (int i = 0; i < levelData.waitAreaSize; i++)
+            {
                 _waitingPassengers.Add(null);
+            }
 
             UniTask[] tasks = {
                 gridManager.LoadCellFromLevelAsync(levelData),
@@ -69,233 +68,265 @@ namespace BusUnjam
             await UniTask.WhenAll(tasks);
             _isLevelInit = true;
         }
-
+        
+        // Event
         // ReSharper disable Unity.PerformanceAnalysis
-        // TODO: Sử dụng event để bắt sự kiện khi click
-        private void ClickCheck()
+        private void PlayerClickedHandle()
         {
-            if (!_isLevelInit) return;
-            if (Input.GetMouseButtonDown(0))
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            int checkLayers = LayerMask.GetMask(Constants.LAYER_NAME_PASSENGER);
+            
+            if (Physics.Raycast(ray, out RaycastHit hit, Constants.MAX_RAYCAST_DISTANCE, checkLayers))
             {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                
-                // Clicked to cell or passenger in that cell
-                int checkLayers = LayerMask.GetMask(PASSENGER_LAYER_NAME, CELL_LAYER_NAME);
-
-                if (!Physics.Raycast(ray, out RaycastHit hit, MAX_RAYCAST_DISTANCE, checkLayers)) return;
-                if (HasPassengerWaitingTag(hit.transform.gameObject)) return;
-                
-                int row = -1;
-                int col = -1;
-                string layerName = LayerMask.LayerToName(hit.collider.gameObject.layer);
-                if (layerName == "Passenger")
+                Passenger p = hit.collider.GetComponent<Passenger>();
+                if (p != null)
                 {
-                    Passenger p = hit.collider.GetComponent<Passenger>();
-                    if (p != null)
+                    if (IsPassengerTagMoving(p))
                     {
-                        Vector2Int? pos = passengerManager.GetGridPositionOfPassenger(p);
-                        if (pos == null) return;
-                        row = pos.Value.x;
-                        col = pos.Value.y;
+                        Debug.Log("That passenger is moving");
+                        return;
                     }
-                }
-                else if (layerName == "Cell")
-                {
-                    Cell c = hit.collider.GetComponent<Cell>();
-                    if (c != null)
+                    if (IsPassengerTagWaiting(p))
                     {
-                        Vector2Int? pos = gridManager.GetGridPositionOfCell(c);
-                        if (pos == null) return;
-                        row = pos.Value.x;
-                        col = pos.Value.y;
+                        Debug.Log("That passenger is waiting for vehicle");
+                        return;
                     }
-                }
-                GridClickHandle(row, col);
-            }
-        }
-
-        private void GridClickHandle(int r, int c)
-        {
-            if (r == -1 || c == -1) return;
-            
-            
-        }
-
-        private void VehicleArrivedHandle(Vehicle v)
-        {
-            
-        }
-
-        private void LevelCompleteHandle()
-        {
-            
-        }
-
-        /*
-        private async UniTask GridClickHandleAsync(int r, int c)
-        {
-            if (GameManager.IsGameOver()) return;
-            GridManager gridMgrRef = GameManager.gridManager;
-            var path = gridMgrRef.FindPathToFirstRow(r, c);
-            if (path == null) return;
-            
-            gridMgrRef.MarkCellEmpty(r, c);
-            Passenger p = GameManager.passengerManager.GetPassengerAtGridPosition(r, c);
-            
-            // Already at exit row
-            if (path.Count == 0) await HandlePassengerArrived(p, r);
-            else
-            {
-                // Move the passenger along the path towards the exit
-                foreach (Vector2Int step in path)
-                {
-                    Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, step.x, step.y, Constants.CellDistance, _cellContainer.position);
-                    float distance = Vector3.Distance(worldPosition, p.transform.position);
-                    float duration = distance / PASSENGER_VELOCITY;
-                    p.SetRunning(true);
-                    await p.MoveTo(worldPosition, duration);
-                }
-                await HandlePassengerArrived(p, r);
-            }
-        }
-
-        private async UniTask HandlePassengerArrived(Passenger p, int fromRow)
-        {
-            if (fromRow != 0) return; // Only process if at first row
-            bool isMoving = GameManager.vehicleManager.IsVehicleMoving();
-            if (isMoving)
-            {
-                // Vehicle is currently arriving –> divert passenger to waiting if possible
-                if (HasFreeWaitingSlot()) await GoToWaitingArea(p);
-                // No waiting slot free, hold in queue until vehicle arrives
-                else
-                {
-                    _readyPassengers.Enqueue(p);
-                    Debug.Log("add to ready and bus is moving");
+                    if (IsPassengerTagSitting(p))
+                    {
+                        Debug.Log("That passenger is sitting on vehicle");
+                        return;
+                    }
+                    Vector2Int? pos = passengerManager.GetGridPositionOfPassenger(p);
+                    if (pos == null)
+                    {
+                        Debug.LogWarning($"Can't find grid position of Passenger {p}");
+                        return;
+                    }
+                    _ = GridSelectedHandle(pos.Value.x, pos.Value.y);
                 }
             }
-            else
-            {
-                // Vehicle is waiting – handle immediately
-                _readyPassengers.Enqueue(p);
-                Debug.Log("add to ready and bus is not moving");
-                await ProcessReadyPassengers();
-            }
         }
 
-        private async UniTask ProcessReadyPassengers()
+        private async UniTask GridSelectedHandle(int r, int c)
         {
-            VehicleManager vehMgrRef = GameManager.vehicleManager;
-            bool isMoving = vehMgrRef.IsVehicleMoving();
-            if (isMoving) return;
+            IReadOnlyList<Vector2Int> pathToFirstRow = gridManager.GetPathToFirstRow(r, c);
+            Passenger p = passengerManager.GetPassengerAtGridPosition(r, c);
 
-            while (HasReadyPassenger())
+            if (pathToFirstRow == null)
             {
-                Passenger p = _readyPassengers.Peek();
-                Vehicle v = vehMgrRef.GetCurrentVehicle();
-                if (v == null) return;
-                bool valid = vehMgrRef.HasBuses() && v.CanAddToVehicle(p);
-                
-                // If passenger cannot board and no waiting space, stop processing until a bus departs
-                if (!valid && !HasFreeWaitingSlot()) break;
-                
-                // Dequeue now that we know it can be processed
-                p = _readyPassengers.Dequeue();
-                valid = vehMgrRef.HasBuses() && v.CanAddToVehicle(p);
-                
-                // TODO: Board the passenger onto the current bus (with tweens)
-                if (valid)
-                {
-                    v.TryAddPassenger(p);
-                    p.TriggerSitting();
-                }
-                // Send the passenger to the waiting area
-                else await GoToWaitingArea(p);
-            }
-            
-            Debug.Log("reached process ready");
-        }
-
-        private async UniTask GoToWaitingArea(Passenger p)
-        {
-            (int, Vector3) freeInfo = GetNearestFreeWaitingInfoForPassenger(p);
-            int index = freeInfo.Item1;
-            if (index == -1) 
-            {
-                Debug.LogError("No free waiting slot but function was called.");
+                Debug.Log("There's no way out for that passenger :)");
+                _ = p.Shake();
                 return;
             }
-            Vector3 position = freeInfo.Item2;
-            _waitingPassengers[index] = p;
-            
-            float distance = Vector3.Distance(position, p.transform.position);
-            float duration = distance / PASSENGER_VELOCITY;
-            
-            p.SetRunning(true);
-            await p.MoveTo(position, duration);
-            p.SetRunning(false);
-            
-            // Check for level failed
-            Debug.Log("reached waiting area / level fail check");
-        }
-        */
-
-        private bool HasPassengerWaitingTag(GameObject go)
-            => go.CompareTag("PassengerWaiting");
-        
-        private float GetMoveDuration(Vector3 from, Vector3 to, float speed)
-            => (Vector3.Distance(from, to) / speed);
-        
-        private bool HasReadyPassenger() => _readyPassengers.Count > 0;
-
-        private void EmptyFreeWaitingIndex(int index) => _waitingPassengers[index] = null;
-        
-        private bool HasFreeWaitingSlot()
-        {
-            foreach (Passenger p in _waitingPassengers)
+            if (IsWaitingFull())
             {
-                if (p == null) return true;
+                Debug.Log("Waiting queue is full of passengers, please wait :(");
+                _ = p.Shake();
+                return;
             }
-            return false;
+            
+            Vector3 endPosition = (pathToFirstRow.Count == 0)
+                ? Utilities.GridToWorldXZNeg(_columns, 0, c, Constants.CELL_DISTANCE, _cellContainer.position) 
+                : Utilities.GridToWorldXZNeg(_columns, pathToFirstRow[^1].x, pathToFirstRow[^1].y, Constants.CELL_DISTANCE, _cellContainer.position);
+
+            (int, Vector3) freeInfo = GetNearestEmptyWaiting(endPosition);
+            int nearestIndex = freeInfo.Item1;
+            Vector3 nearestPosition = freeInfo.Item2;
+
+            if (nearestIndex == -1)
+            {
+                Debug.LogWarning("Can't find nearest waiting tile index");
+                return;
+            }
+            await MovePassengerAlongPath(p, pathToFirstRow, r, c, nearestIndex);
+            await MovePassengerToWaitingArea(p, nearestIndex, nearestPosition);
+            
+            // Check for game over here
+            
+            //
+            
+            Vehicle v = vehicleManager.GetCurrentVehicle();
+            if (v == null) return;
+            if (vehicleManager.IsVehiclesMoving()) return;
+            
+            int seatIndex = CanAddToVehicle(p, v);
+            if (seatIndex == -1)
+            {
+                Debug.LogWarning($"Can't add, there's no free seat or passenger doesn't have tag {Constants.TAG_NAME_WAITING}");
+                return;
+            }
+            await MovePassengerToVehicle(p, v, nearestIndex, seatIndex);
+            await PerformNextVehicleCondition(v);
+        }
+        
+        private async UniTask MovePassengerAlongPath(Passenger p, IReadOnlyList<Vector2Int> path, int r, int c, int nearestIndex)
+        {
+            _waitingPassengers[nearestIndex] = p;
+            gridManager.MarkCellEmpty(r, c);
+            SetPassengerTagMoving(p);
+            foreach (Vector2Int step in path)
+            {
+                Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, step.x, step.y, Constants.CELL_DISTANCE, _cellContainer.position);
+                p.SetRunningAnimation(true);
+                await p.MoveTo(worldPosition, GetMoveDuration(p.transform.position, worldPosition, Constants.PASSENGER_MOVE_SPEED));
+            }
         }
 
-        private List<int> GetFreeWaitingIndexes()
+        private async UniTask MovePassengerToWaitingArea(Passenger p, int waitingIndex, Vector3 waitingPosition)
         {
-            if (!HasFreeWaitingSlot()) return null;
-            List<int> slots = new();
+            p.SetRunningAnimation(true);
+            await p.MoveTo(waitingPosition, GetMoveDuration(p.transform.position, waitingPosition, Constants.PASSENGER_MOVE_SPEED));
+            p.SetRunningAnimation(false);
+            SetPassengerTagWaiting(p);
+            _waitingPassengers[waitingIndex] = p;
+        }
+
+        private async UniTask MovePassengerToVehicle(Passenger p, Vehicle v, int waitingIndex, int seatIndex)
+        {
+            v.data.occupied[seatIndex] = true;
+            p.SetRunningAnimation(true);
+            Vector3 destination = new(v.transform.position.x, p.transform.position.y, v.transform.position.z-0.5f);
+            await p.MoveTo(destination, GetMoveDuration(p.transform.position, destination, Constants.PASSENGER_MOVE_SPEED));
+            _currentCount++;
+            p.transform.SetParent(v.GetSeatTransformAtIndex(seatIndex));
+            p.transform.localPosition = Vector3.zero;
+            p.TriggerSittingAnimation();
+            SetPassengerTagSitting(p);
+            _waitingPassengers[waitingIndex] = null;
+        }
+
+        // Event
+        private void VehicleArrivedHandle(Vehicle v)
+        {
+            _ = VehicleArrivedHandleAsync(v);
+        }
+
+        private async UniTask VehicleArrivedHandleAsync(Vehicle v)
+        {
+            List<UniTask> tasks = new();
             for (int i = 0; i < _waitingPassengers.Count; i++)
             {
-                if (_waitingPassengers[i] == null)
-                    slots.Add(i);
+                Passenger p = _waitingPassengers[i];
+                if (p == null) continue;
+                
+                int seatIndex = CanAddToVehicle(p, v);
+                if (seatIndex == -1) continue;
+                
+                tasks.Add(MovePassengerToVehicle(p, v, i, seatIndex));
             }
-            return slots;
+            await UniTask.WhenAll(tasks);
+            await PerformNextVehicleCondition(v);
         }
 
-        private (int, Vector3) GetNearestFreeWaitingInfoForPassenger(Passenger p)
+        private async UniTask PerformNextVehicleCondition(Vehicle v)
         {
-            List<int> freeSlots = GetFreeWaitingIndexes();
-            if (freeSlots == null || freeSlots.Count == 0) return (-1, Vector3.zero);
+            if (IsVehicleFull(v) && _currentCount >= Constants.VEHICLE_SEAT_SLOTS)
+            {
+                await vehicleManager.NextVehicleAsync();
+                _currentCount = 0;
+            }
+        }
+        
+        // Event
+        private void AllVehicleDoneHandle()
+        {
+            // Check for game win here
             
-            int freeSlotCount = freeSlots.Count;
+            //
+        }
+
+        private int CanAddToVehicle(Passenger p, Vehicle v)
+        {
+            if (!IsPassengerTagWaiting(p)) return -1;
+            int index = GetEmptySeatIndex(p, v);
+            return index;
+        }
+
+        // Vehicle helper functions
+        private bool IsVehicleFull(Vehicle v)
+        {
+            for (int i = 0; i < Constants.VEHICLE_SEAT_SLOTS; i++) if (!v.data.occupied[i]) return false;
+            return true;
+        }
+        
+        private int GetEmptySeatIndex(Passenger p, Vehicle v)
+        {
+            if (IsVehicleFull(v) || p == null || p.data == null || v == null || v.data == null) return -1;
+            for (int i = 0; i < Constants.VEHICLE_SEAT_SLOTS; i++)
+            {
+                if (v.data.occupied[i]) continue;
+                if (v.data.colorType == p.data.colorType) return i;
+            }
+            return -1;
+        }
+        
+        // Passenger helper functions
+        private void SetPassengerTagWaiting(Passenger p)
+        {
+            p.tag = Constants.TAG_NAME_WAITING;
+        }
+        
+        private void SetPassengerTagMoving(Passenger p)
+        {
+            p.tag = Constants.TAG_NAME_MOVING;
+        }
+        
+        private void SetPassengerTagSitting(Passenger p)
+        {
+            p.tag = Constants.TAG_NAME_SITTING;
+        }
+        
+        private bool IsPassengerTagWaiting(Passenger p)
+        {
+            return p.gameObject.CompareTag(Constants.TAG_NAME_WAITING);
+        }
+
+        private bool IsPassengerTagMoving(Passenger p)
+        {
+            return p.gameObject.CompareTag(Constants.TAG_NAME_MOVING);
+        }
+        
+        private bool IsPassengerTagSitting(Passenger p)
+        {
+            return p.gameObject.CompareTag(Constants.TAG_NAME_SITTING);
+        }
+        
+        // Waiting queue helper functions
+        private bool IsWaitingFull()
+        {
+            foreach (Passenger p in _waitingPassengers) if (p == null) return false;
+            return true;
+        }
+
+        private (int, Vector3) GetNearestEmptyWaiting(Vector3 fromPosition)
+        {
             float smallestDistance = float.MaxValue;
             int nearestIndex = -1;
             Vector3 nearestPosition = Vector3.zero;
             
-            for (int i = 0; i < freeSlotCount; i++)
+            for (int i = 0; i < _waitingPassengers.Count; i++)
             {
-                int slot = freeSlots[i];
-                Vector3? tilePos = gridManager.GetPositionOfWaitingTileIndex(slot);
+                if (_waitingPassengers[i] != null) continue;
+                Vector3? tilePos = gridManager.GetPositionOfWaitingTileIndex(i);
                 if (tilePos == null) continue;
 
-                float dist = Vector3.Distance(tilePos.Value, p.transform.position);
+                float dist = Vector3.Distance(tilePos.Value, fromPosition);
                 if (dist < smallestDistance)
                 {
                     smallestDistance = dist;
-                    nearestIndex = slot;
+                    nearestIndex = i;
                     nearestPosition = tilePos.Value;
                 }
             }
+            
+            if (nearestIndex == -1) return (-1, Vector3.zero);
             return (nearestIndex, nearestPosition);
+        }
+        
+        // Calculate helper functions
+        private float GetMoveDuration(Vector3 from, Vector3 to, float speed)
+        {
+            return Vector3.Distance(from, to) / speed;
         }
     }
 }

@@ -3,13 +3,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace BusUnjam
+namespace VehicleUnjam
 {
     public class Temp : MonoBehaviour
     {
         public void Play()
         {
-            PlayAsync().Forget();
+            _ = PlayAsync();
         }
         
         public async UniTask PlayAsync()
@@ -93,55 +93,46 @@ namespace BusUnjam
                 {
                     colorType = eColorType.Red,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Red,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Red,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Green,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Red,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Red,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Red,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Red,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
                 new()
                 {
                     colorType = eColorType.Blue,
                     occupied = new[] {false, false, false},
-                    required = new[] { ePassengerType.Normal, ePassengerType.Normal, ePassengerType.Normal}
                 },
             };
             
