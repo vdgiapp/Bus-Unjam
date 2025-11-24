@@ -40,5 +40,10 @@ namespace VehicleUnjam
         public const string LAYER_NAME_PASSENGER = "Passenger";
         public const string LAYER_NAME_CELL = "Cell";
         public const string LAYER_NAME_WAITING_TILE = "WaitingTile";
+        
+        // Editor
+        public const string LEVEL_EDITOR_NAME = "Level Editor";
+        public const string LEVEL_EDITOR_WINDOW_MENU = "Tools/Vehicle Unjam/" + LEVEL_EDITOR_NAME;
+        public const string LEVEL_FOLDER_PATH = "Assets/Data/Levels";
     }
 }

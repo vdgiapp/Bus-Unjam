@@ -13,6 +13,7 @@ namespace VehicleUnjam
         [SerializeField] private Animator _animator;
         [SerializeField] private MeshRenderer _meshRenderer;
         [SerializeField] private int _specifiedColorMaterialIndex;
+        [SerializeField] private Transform _doorTransform;
         [SerializeField] private Transform[] _seatTransforms = new Transform[Constants.VEHICLE_SEAT_SLOTS];
         
         private MaterialPropertyBlock _mpbColor;
@@ -44,10 +45,15 @@ namespace VehicleUnjam
             if (index < 0 || index >= _seatTransforms.Length) return null;
             return _seatTransforms[index];
         }
+
+        public Transform GetDoorTransform()
+        {
+            return _doorTransform;
+        }
     }
 
     [Serializable]
-    public class VehicleData
+    public struct VehicleData
     {
         public eColorType colorType;
         public bool[] occupied;

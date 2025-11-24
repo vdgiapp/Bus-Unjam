@@ -10,9 +10,9 @@ namespace VehicleUnjam
         public int columns;
         public int waitAreaSize;
         
-        [SerializeReference] public CellData[] cells;
-        [SerializeReference] public PassengerData[] passengers;
-        [SerializeReference] public VehicleData[] vehicles;
+        public CellData[] cells;
+        public PassengerData[] passengers;
+        public VehicleData[] vehicles;
 
         // Helper methods
         public int Index(int r, int c)

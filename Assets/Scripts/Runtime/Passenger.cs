@@ -74,7 +74,7 @@ namespace VehicleUnjam
     }
 
     [Serializable]
-    public class PassengerData
+    public struct PassengerData
     {
         public eColorType colorType;
         public ePassengerType passengerType;

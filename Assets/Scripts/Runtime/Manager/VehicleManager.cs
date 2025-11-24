@@ -53,7 +53,7 @@ namespace VehicleUnjam
         public async UniTask NextVehicleAsync()
         {
             if (GetActiveVehicles() == 0 || IsVehiclesMoving()) return;
-            if (_currentVehicle != null && _currentVehicle.data != null)
+            if (_currentVehicle != null)
             {
                 await MoveToNextDestinationAsync();
                 if (!TrySpawnNewVehicle() && !HasBuses())

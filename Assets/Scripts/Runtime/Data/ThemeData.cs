@@ -8,9 +8,9 @@ namespace VehicleUnjam
     {
         [SerializeField] private GameObject _environmentPrefab;
         [SerializeField] private GameObject _waitingTilePrefab;
+        [SerializeField] private PassengerSettingsSO _passengerSettings;
         [SerializeField] private GameObject _vehiclePrefab;
         [SerializeField] private CellSettingsSO _cellSettings;
-        [SerializeField] private PassengerSettingsSO _passengerSettings;
         
         public GameObject GetEnvironmentPrefab()
         {

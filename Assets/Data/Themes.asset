@@ -17,6 +17,6 @@ MonoBehaviour:
     Value:
       _environmentPrefab: {fileID: 6526953354304269749, guid: c87e03bc018dbb346ac0c025a0be5097, type: 3}
       _waitingTilePrefab: {fileID: 4681901014343509938, guid: 9254193231e677e4b8c240ed3b8cba48, type: 3}
+      _passengerSettings: {fileID: 11400000, guid: ac741477af497154eb1d5d5f88d6a164, type: 2}
       _vehiclePrefab: {fileID: 5755579940605254692, guid: b97a96c59fb86254cb4839b8e84ce525, type: 3}
       _cellSettings: {fileID: 11400000, guid: 0b14e9e568ab7df4e918bf51e01350c9, type: 2}
-      _passengerSettings: {fileID: 11400000, guid: ac741477af497154eb1d5d5f88d6a164, type: 2}

@@ -1,0 +1,10 @@
+{
+    "$id": 0,
+    "$type": "0|VehicleUnjam.LevelData, Assembly-CSharp",
+    "rows": 6,
+    "columns": 6,
+    "waitAreaSize": 5,
+    "cells": null,
+    "passengers": null,
+    "vehicles": null
+}

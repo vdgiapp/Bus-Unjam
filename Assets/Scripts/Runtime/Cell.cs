@@ -12,25 +12,17 @@ namespace VehicleUnjam
     }
     
     [Serializable]
-    public class CellData
+    public struct CellData
     {
         public eCellType cellType;
         public bool isOccupied;
     }
     
     [Serializable]
-    public class TunnelCellData : CellData
-    {
-        public readonly List<Passenger> passengers = new();
-    }
-    
-    
-    [Serializable]
     public enum eCellType
     {
-        None = -1, // For level designer tool
+        None = -1,
         Normal,
-        Tunnel
         // bla bla, ble ble
     }
 }

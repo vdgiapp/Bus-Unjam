@@ -139,7 +139,7 @@ namespace VehicleUnjam
                 return;
             }
             await MovePassengerAlongPath(p, pathToFirstRow, r, c, nearestIndex);
-            await MovePassengerToWaitingArea(p, nearestIndex, nearestPosition);
+            await MovePassengerToWaitingArea(p, nearestPosition);
             
             // Check for game over here
             
@@ -150,11 +150,7 @@ namespace VehicleUnjam
             if (vehicleManager.IsVehiclesMoving()) return;
             
             int seatIndex = CanAddToVehicle(p, v);
-            if (seatIndex == -1)
-            {
-                Debug.LogWarning($"Can't add, there's no free seat or passenger doesn't have tag {Constants.TAG_NAME_WAITING}");
-                return;
-            }
+            if (seatIndex == -1) return;
             await MovePassengerToVehicle(p, v, nearestIndex, seatIndex);
             await PerformNextVehicleCondition(v);
         }
@@ -172,27 +168,27 @@ namespace VehicleUnjam
             }
         }
 
-        private async UniTask MovePassengerToWaitingArea(Passenger p, int waitingIndex, Vector3 waitingPosition)
+        private async UniTask MovePassengerToWaitingArea(Passenger p, Vector3 waitingPosition)
         {
             p.SetRunningAnimation(true);
             await p.MoveTo(waitingPosition, GetMoveDuration(p.transform.position, waitingPosition, Constants.PASSENGER_MOVE_SPEED));
             p.SetRunningAnimation(false);
             SetPassengerTagWaiting(p);
-            _waitingPassengers[waitingIndex] = p;
         }
 
-        private async UniTask MovePassengerToVehicle(Passenger p, Vehicle v, int waitingIndex, int seatIndex)
+        private async UniTask MovePassengerToVehicle(Passenger p, Vehicle v, int nearestIndex, int seatIndex)
         {
+            _waitingPassengers[nearestIndex] = null;
             v.data.occupied[seatIndex] = true;
             p.SetRunningAnimation(true);
-            Vector3 destination = new(v.transform.position.x, p.transform.position.y, v.transform.position.z-0.5f);
+            Vector3 doorPosition = v.GetDoorTransform().position;
+            Vector3 destination = new(doorPosition.x, p.transform.position.y, doorPosition.z);
             await p.MoveTo(destination, GetMoveDuration(p.transform.position, destination, Constants.PASSENGER_MOVE_SPEED));
             _currentCount++;
             p.transform.SetParent(v.GetSeatTransformAtIndex(seatIndex));
             p.transform.localPosition = Vector3.zero;
             p.TriggerSittingAnimation();
             SetPassengerTagSitting(p);
-            _waitingPassengers[waitingIndex] = null;
         }
 
         // Event
@@ -251,7 +247,7 @@ namespace VehicleUnjam
         
         private int GetEmptySeatIndex(Passenger p, Vehicle v)
         {
-            if (IsVehicleFull(v) || p == null || p.data == null || v == null || v.data == null) return -1;
+            if (IsVehicleFull(v) || p == null || v == null) return -1;
             for (int i = 0; i < Constants.VEHICLE_SEAT_SLOTS; i++)
             {
                 if (v.data.occupied[i]) continue;

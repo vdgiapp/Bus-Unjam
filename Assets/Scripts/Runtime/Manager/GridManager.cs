@@ -119,7 +119,7 @@ namespace VehicleUnjam
                     if (travelDictionary.ContainsKey(next)) continue;
                     
                     Cell c = _cells[next.x, next.y];
-                    if (c == null || c.data == null) continue;
+                    if (c == null) continue;
                     if (c.data.isOccupied) continue;
                     if (Utilities.IsCellTypeIgnoreOccupied(c.data.cellType)) continue;
                     
