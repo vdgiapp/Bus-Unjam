@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6260587515836446416}
-  - component: {fileID: 5362996659843401057}
+  - component: {fileID: 6343323236385178986}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2201531086610030161}
   m_LocalEulerAnglesHint: {x: 54, y: -13, z: 12}
---- !u!108 &5362996659843401057
+--- !u!108 &6343323236385178986
 Light:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -83,7 +83,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingLayerMask: 1
-  m_Lightmapping: 2
+  m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
