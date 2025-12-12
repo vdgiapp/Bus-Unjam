@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 namespace VehicleUnjam
@@ -11,6 +12,9 @@ namespace VehicleUnjam
         public static LevelHandler instance { get; private set; }
         
         [SerializeField] private Transform _cellContainer;
+
+        [SerializeField] private TMP_Text _tempTmpText;
+        [SerializeField] private TMP_Text _fpsTmpText;
         
         [Header("Managers")]
         [SerializeField] private GridManager gridManager;
@@ -18,35 +22,67 @@ namespace VehicleUnjam
         [SerializeField] private VehicleManager vehicleManager;
         
         private readonly List<Passenger> _waitingPassengers = new();
-
-        private int _currentCount = 0;
+        
+        private int _passengersOnVehicle = 0;
         
         private int _rows;
         private int _columns;
 
         private bool _isLevelInit = false;
         private bool _isLevelEnded = false;
+        
+        private int _frameCount = 0;
+        private float _fpsTimer = 0f;
 
         private void Awake()
         {
             instance = this;
 
             vehicleManager.OnVehicleArrived += VehicleArrivedHandle;
-            vehicleManager.OnAllVehicleDone += AllVehicleDoneHandle;
+            vehicleManager.OnAllVehicleDone += LevelCompleteHandle;
+        }
+        
+        private void Update() 
+        {
+            PlayerUpdate();;
+            FPSUpdate();
         }
 
-        private void Update()
+        private void PlayerUpdate()
         {
-            if (_isLevelInit && !_isLevelEnded && Input.GetMouseButtonDown(0))
+            if (!_isLevelInit || _isLevelEnded) return;
+            bool clicked = false;
+            if (Input.GetMouseButtonDown(0)) clicked = true; // PC or Editor
+            if (Input.touchCount > 0) // Mobile
             {
-                PlayerClickedHandle();
+                Touch t = Input.GetTouch(0);
+                if (t.phase == TouchPhase.Ended) clicked = true;
+            }
+            if (!clicked) return;
+            
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            int checkLayers = LayerMask.GetMask(Constants.LAYER_NAME_PASSENGER);
+            if (Physics.Raycast(ray, out RaycastHit hit, Constants.MAX_RAYCAST_DISTANCE, checkLayers))
+            {
+                Passenger p = hit.collider.GetComponent<Passenger>();
+                if (p != null)
+                {
+                    if (IsPassengerTagMoving(p) || IsPassengerTagWaiting(p) || IsPassengerTagSitting(p)) return;
+                    Vector2Int? pos = passengerManager.GetGridPositionOfPassenger(p);
+                    if (pos == null)
+                    {
+                        Debug.LogWarning($"Can't find grid position of Passenger {p}");
+                        return;
+                    }
+                    _ = GridSelectedHandleAsync(pos.Value.x, pos.Value.y);
+                }
             }
         }
 
         private void OnDestroy()
         {
             vehicleManager.OnVehicleArrived -= VehicleArrivedHandle;
-            vehicleManager.OnAllVehicleDone -= AllVehicleDoneHandle;
+            vehicleManager.OnAllVehicleDone -= LevelCompleteHandle;
         }
 
         public async UniTask InitLevel(LevelData levelData)
@@ -58,56 +94,34 @@ namespace VehicleUnjam
             {
                 _waitingPassengers.Add(null);
             }
-
-            UniTask[] tasks = {
-                gridManager.LoadCellFromLevelAsync(levelData),
-                gridManager.LoadWaitingTileAsync(levelData),
-                passengerManager.LoadPassengerFromLevelAsync(levelData),
-                vehicleManager.LoadVehicleFromLevelAsync(levelData),
-            };
-            await UniTask.WhenAll(tasks);
+            await UniTask.WhenAll(
+                gridManager.LoadCellFromLevelAsync(levelData), 
+                gridManager.LoadWaitingTileAsync(levelData), 
+                passengerManager.LoadPassengerFromLevelAsync(levelData), 
+                vehicleManager.LoadVehicleFromLevelAsync(levelData)
+            );
             _isLevelInit = true;
         }
         
-        // Event
-        // ReSharper disable Unity.PerformanceAnalysis
-        private void PlayerClickedHandle()
+        
+        private void FPSUpdate()
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            int checkLayers = LayerMask.GetMask(Constants.LAYER_NAME_PASSENGER);
-            
-            if (Physics.Raycast(ray, out RaycastHit hit, Constants.MAX_RAYCAST_DISTANCE, checkLayers))
+            _frameCount++;
+            _fpsTimer += Time.deltaTime;
+
+            if (_fpsTimer >= 1f)
             {
-                Passenger p = hit.collider.GetComponent<Passenger>();
-                if (p != null)
-                {
-                    if (IsPassengerTagMoving(p))
-                    {
-                        Debug.Log("That passenger is moving");
-                        return;
-                    }
-                    if (IsPassengerTagWaiting(p))
-                    {
-                        Debug.Log("That passenger is waiting for vehicle");
-                        return;
-                    }
-                    if (IsPassengerTagSitting(p))
-                    {
-                        Debug.Log("That passenger is sitting on vehicle");
-                        return;
-                    }
-                    Vector2Int? pos = passengerManager.GetGridPositionOfPassenger(p);
-                    if (pos == null)
-                    {
-                        Debug.LogWarning($"Can't find grid position of Passenger {p}");
-                        return;
-                    }
-                    _ = GridSelectedHandle(pos.Value.x, pos.Value.y);
-                }
+                int fps = Mathf.RoundToInt(_frameCount / _fpsTimer);
+
+                _fpsTmpText.text = $"FPS: {fps}";
+
+                _frameCount = 0;
+                _fpsTimer = 0f;
             }
         }
-
-        private async UniTask GridSelectedHandle(int r, int c)
+        
+        // ReSharper disable Unity.PerformanceAnalysis
+        private async UniTask GridSelectedHandleAsync(int r, int c)
         {
             IReadOnlyList<Vector2Int> pathToFirstRow = gridManager.GetPathToFirstRow(r, c);
             Passenger p = passengerManager.GetPassengerAtGridPosition(r, c);
@@ -125,37 +139,44 @@ namespace VehicleUnjam
                 return;
             }
             
-            Vector3 endPosition = (pathToFirstRow.Count == 0)
+            // check trung mau vehicle, neu trung thi di chuyen len vehicle luon
+            
+            
+            // khong thi di chuyen qua hang doi
+            Vector3 endFirstRowPosition = (pathToFirstRow.Count == 0)
                 ? Utilities.GridToWorldXZNeg(_columns, 0, c, Constants.CELL_DISTANCE, _cellContainer.position) 
                 : Utilities.GridToWorldXZNeg(_columns, pathToFirstRow[^1].x, pathToFirstRow[^1].y, Constants.CELL_DISTANCE, _cellContainer.position);
 
-            (int, Vector3) freeInfo = GetNearestEmptyWaiting(endPosition);
-            int nearestIndex = freeInfo.Item1;
-            Vector3 nearestPosition = freeInfo.Item2;
+            (int, Vector3) freeInfo = GetNearestEmptyWaiting(endFirstRowPosition);
+            int nearestWaitingIndex = freeInfo.Item1;
+            Vector3 nearestWaitingPosition = freeInfo.Item2;
 
-            if (nearestIndex == -1)
+            if (nearestWaitingIndex == -1)
             {
                 Debug.LogWarning("Can't find nearest waiting tile index");
                 return;
             }
-            await MovePassengerAlongPath(p, pathToFirstRow, r, c, nearestIndex);
-            await MovePassengerToWaitingArea(p, nearestPosition);
-            
-            // Check for game over here
-            
-            //
+            await MovePassengerAlongPathAsync(p, pathToFirstRow, r, c, nearestWaitingIndex);
+            await MovePassengerToWaitingAreaAsync(p, nearestWaitingPosition);
             
             Vehicle v = vehicleManager.GetCurrentVehicle();
             if (v == null) return;
             if (vehicleManager.IsVehiclesMoving()) return;
             
-            int seatIndex = CanAddToVehicle(p, v);
-            if (seatIndex == -1) return;
-            await MovePassengerToVehicle(p, v, nearestIndex, seatIndex);
-            await PerformNextVehicleCondition(v);
+            int seatIndex = GetEmptySeatIndex(p, v);
+            if (seatIndex == -1)
+            {
+                await CheckLevelFailedFullWaiting();
+            }
+            else
+            {
+                if (!IsPassengerTagWaiting(p)) return;
+                await MovePassengerToVehicleAsync(p, v, nearestWaitingIndex, seatIndex);
+                await NextVehicleCheckAsync(v);
+            }  
         }
         
-        private async UniTask MovePassengerAlongPath(Passenger p, IReadOnlyList<Vector2Int> path, int r, int c, int nearestIndex)
+        private async UniTask MovePassengerAlongPathAsync(Passenger p, IReadOnlyList<Vector2Int> path, int r, int c, int nearestIndex)
         {
             _waitingPassengers[nearestIndex] = p;
             gridManager.MarkCellEmpty(r, c);
@@ -168,7 +189,7 @@ namespace VehicleUnjam
             }
         }
 
-        private async UniTask MovePassengerToWaitingArea(Passenger p, Vector3 waitingPosition)
+        private async UniTask MovePassengerToWaitingAreaAsync(Passenger p, Vector3 waitingPosition)
         {
             p.SetRunningAnimation(true);
             await p.MoveTo(waitingPosition, GetMoveDuration(p.transform.position, waitingPosition, Constants.PASSENGER_MOVE_SPEED));
@@ -176,7 +197,7 @@ namespace VehicleUnjam
             SetPassengerTagWaiting(p);
         }
 
-        private async UniTask MovePassengerToVehicle(Passenger p, Vehicle v, int nearestIndex, int seatIndex)
+        private async UniTask MovePassengerToVehicleAsync(Passenger p, Vehicle v, int nearestIndex, int seatIndex)
         {
             _waitingPassengers[nearestIndex] = null;
             v.data.occupied[seatIndex] = true;
@@ -184,7 +205,7 @@ namespace VehicleUnjam
             Vector3 doorPosition = v.GetDoorTransform().position;
             Vector3 destination = new(doorPosition.x, p.transform.position.y, doorPosition.z);
             await p.MoveTo(destination, GetMoveDuration(p.transform.position, destination, Constants.PASSENGER_MOVE_SPEED));
-            _currentCount++;
+            _passengersOnVehicle++;
             p.transform.SetParent(v.GetSeatTransformAtIndex(seatIndex));
             p.transform.localPosition = Vector3.zero;
             p.TriggerSittingAnimation();
@@ -199,45 +220,61 @@ namespace VehicleUnjam
 
         private async UniTask VehicleArrivedHandleAsync(Vehicle v)
         {
+            _passengersOnVehicle = 0;
+            await CheckLevelFailedFullWaiting();
+            
             List<UniTask> tasks = new();
             for (int i = 0; i < _waitingPassengers.Count; i++)
             {
                 Passenger p = _waitingPassengers[i];
                 if (p == null) continue;
-                
-                int seatIndex = CanAddToVehicle(p, v);
+                int seatIndex = GetEmptySeatIndex(p, v);
                 if (seatIndex == -1) continue;
-                
-                tasks.Add(MovePassengerToVehicle(p, v, i, seatIndex));
+                if (!IsPassengerTagWaiting(p)) continue;
+                tasks.Add(MovePassengerToVehicleAsync(p, v, i, seatIndex));
             }
             await UniTask.WhenAll(tasks);
-            await PerformNextVehicleCondition(v);
+            await NextVehicleCheckAsync(v);
         }
 
-        private async UniTask PerformNextVehicleCondition(Vehicle v)
+        private async UniTask NextVehicleCheckAsync(Vehicle v)
         {
-            if (IsVehicleFull(v) && _currentCount >= Constants.VEHICLE_SEAT_SLOTS)
+            if (IsVehicleFull(v) && _passengersOnVehicle >= Constants.VEHICLE_SEAT_SLOTS)
             {
                 await vehicleManager.NextVehicleAsync();
-                _currentCount = 0;
+            }
+        }
+        
+        private async UniTask CheckLevelFailedFullWaiting()
+        {
+            Vehicle v = vehicleManager.GetCurrentVehicle();
+            if (v == null) return;
+            if (!IsWaitingFull() || vehicleManager.IsVehiclesMoving()) return;
+            await UniTask.WaitForSeconds(Constants.FAILED_TIME_CHECK);
+            if (!IsWaitingFull() || vehicleManager.IsVehiclesMoving()) return;
+            if (!HasValidPassengerForVehicle(v))
+            {
+                LevelFailedHandle();
             }
         }
         
         // Event
-        private void AllVehicleDoneHandle()
+        private void LevelCompleteHandle()
         {
-            // Check for game win here
-            
-            //
+            if (_isLevelEnded) return;
+            _isLevelEnded = true;
+            Debug.Log("Level completed");
+            _tempTmpText.text = "Level Completed";
         }
-
-        private int CanAddToVehicle(Passenger p, Vehicle v)
+        
+        private void LevelFailedHandle()
         {
-            if (!IsPassengerTagWaiting(p)) return -1;
-            int index = GetEmptySeatIndex(p, v);
-            return index;
+            if (_isLevelEnded) return;
+            _isLevelEnded = true;
+            Debug.Log("Level failed");
+            _tempTmpText.text = "Level Failed";
         }
-
+        
         // Vehicle helper functions
         private bool IsVehicleFull(Vehicle v)
         {
@@ -254,6 +291,16 @@ namespace VehicleUnjam
                 if (v.data.colorType == p.data.colorType) return i;
             }
             return -1;
+        }
+        
+        private bool HasValidPassengerForVehicle(Vehicle v)
+        {
+            foreach (var p in _waitingPassengers)
+            {
+                if (p == null) continue;
+                if (GetEmptySeatIndex(p, v) != -1) return true;
+            }
+            return false;
         }
         
         // Passenger helper functions

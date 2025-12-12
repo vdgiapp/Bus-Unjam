@@ -11,6 +11,8 @@ namespace VehicleUnjam
         // Animator
         public static readonly int ANIMATOR_IS_SITTING_ID = Animator.StringToHash("isSitting");
         public static readonly int ANIMATOR_IS_RUNNING_ID = Animator.StringToHash("isRunning");
+
+        public const float FAILED_TIME_CHECK = 0.5f;
         
         // Cell
         public const float CELL_DISTANCE = 0.6f;

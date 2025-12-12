@@ -46,14 +46,13 @@ namespace VehicleUnjam
                 }
             }
 
-            if (GetActiveVehicles() > 0) _currentVehicle = _vehicleActive[0];
-            else _currentVehicle = null;
+            _currentVehicle = GetActiveVehicles() > 0 ? _vehicleActive[0] : null;
         }
         
         public async UniTask NextVehicleAsync()
         {
             if (GetActiveVehicles() == 0 || IsVehiclesMoving()) return;
-            if (_currentVehicle != null)
+            if (GetCurrentVehicle() != null)
             {
                 await MoveToNextDestinationAsync();
                 if (!TrySpawnNewVehicle() && !HasBuses())
@@ -137,12 +136,11 @@ namespace VehicleUnjam
             ReturnVehicleToPool(_vehicleActive[0]);
             _vehicleActive.RemoveAt(0);
             
-            if (GetActiveVehicles() > 0) _currentVehicle = _vehicleActive[0];
-            else _currentVehicle = null;
+            _currentVehicle = GetActiveVehicles() > 0 ? _vehicleActive[0] : null;
             
             _isVehiclesMoving = false;
             
-            if (_currentVehicle != null)
+            if (GetCurrentVehicle() != null)
             {
                 OnVehicleArrived?.Invoke(_currentVehicle);
             }
