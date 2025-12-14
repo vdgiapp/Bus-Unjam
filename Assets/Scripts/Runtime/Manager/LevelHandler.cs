@@ -23,7 +23,8 @@ namespace VehicleUnjam
         
         private readonly List<Passenger> _waitingPassengers = new();
         
-        private int _passengersOnVehicle = 0;
+        private int _reversedPassengers = 0;
+        private int _onVehiclePassengers = 0;
         
         private int _rows;
         private int _columns;
@@ -125,24 +126,14 @@ namespace VehicleUnjam
         {
             IReadOnlyList<Vector2Int> pathToFirstRow = gridManager.GetPathToFirstRow(r, c);
             Passenger p = passengerManager.GetPassengerAtGridPosition(r, c);
-
+            
+            // Không tìm đc đường đi
             if (pathToFirstRow == null)
             {
-                Debug.Log("There's no way out for that passenger :)");
                 _ = p.Shake();
                 return;
             }
-            if (IsWaitingFull())
-            {
-                Debug.Log("Waiting queue is full of passengers, please wait :(");
-                _ = p.Shake();
-                return;
-            }
-            
-            // check trung mau vehicle, neu trung thi di chuyen len vehicle luon
-            
-            
-            // khong thi di chuyen qua hang doi
+
             Vector3 endFirstRowPosition = (pathToFirstRow.Count == 0)
                 ? Utilities.GridToWorldXZNeg(_columns, 0, c, Constants.CELL_DISTANCE, _cellContainer.position) 
                 : Utilities.GridToWorldXZNeg(_columns, pathToFirstRow[^1].x, pathToFirstRow[^1].y, Constants.CELL_DISTANCE, _cellContainer.position);
@@ -150,43 +141,124 @@ namespace VehicleUnjam
             (int, Vector3) freeInfo = GetNearestEmptyWaiting(endFirstRowPosition);
             int nearestWaitingIndex = freeInfo.Item1;
             Vector3 nearestWaitingPosition = freeInfo.Item2;
-
+            
+            // Không tìm thấy slot hàng chờ trống gần nhất (có thể gọi là hàng chờ đã full)
             if (nearestWaitingIndex == -1)
             {
-                Debug.LogWarning("Can't find nearest waiting tile index");
+                _ = p.Shake();
                 return;
             }
-            await MovePassengerAlongPathAsync(p, pathToFirstRow, r, c, nearestWaitingIndex);
-            await MovePassengerToWaitingAreaAsync(p, nearestWaitingPosition);
             
-            Vehicle v = vehicleManager.GetCurrentVehicle();
-            if (v == null) return;
-            if (vehicleManager.IsVehiclesMoving()) return;
-            
-            int seatIndex = GetEmptySeatIndex(p, v);
-            if (seatIndex == -1)
+            // Xe đang di chuyển
+            if (vehicleManager.IsVehiclesMoving())
             {
-                await CheckLevelFailedFullWaiting();
+                // Thực hiện di chuyển đến hàng chờ
+                if (IsWaitingFull())
+                {
+                    _ = p.Shake();
+                    return;
+                }
+                _waitingPassengers[nearestWaitingIndex] = p;
+                gridManager.MarkCellEmpty(r, c);
+                SetPassengerTagMoving(p);
+                
+                await MovePassengerAlongPathAsync(p, pathToFirstRow);
+                
+                await MovePassengerToWaitingAreaAsync(p, nearestWaitingPosition);
+                
+                SetPassengerTagWaiting(p);
+                
+                // Nếu xe vẫn đang di chuyển thì passenger dừng
+                if (vehicleManager.IsVehiclesMoving()) return;
+                
+                // Còn nếu xe không di chuyển, kiểm tra xem có add đc vào xe ko
+                int seatIndex = GetEmptySeatIndex(p, vehicleManager.GetCurrentVehicle());
+                if (seatIndex == -1)
+                {
+                    // Không add được vào xe, kiểm tra điều kiện thua
+                    await CheckLevelFailedFullWaiting();
+                }
+                else
+                {
+                    // Add lên xe
+                    if (!IsPassengerTagWaiting(p)) return;
+                    
+                    vehicleManager.GetCurrentVehicle().data.occupied[seatIndex] = true;
+                    _reversedPassengers++;
+                    _waitingPassengers[nearestWaitingIndex] = null;
+                    
+                    await MovePassengerToVehicleAsync(p, vehicleManager.GetCurrentVehicle());
+                    
+                    _onVehiclePassengers++;
+                    p.transform.SetParent(vehicleManager.GetCurrentVehicle().GetSeatTransformAtIndex(seatIndex));
+                    p.transform.localPosition = Vector3.zero;
+                    SetPassengerTagSitting(p);
+                    
+                    await NextVehicleCheckAsync(vehicleManager.GetCurrentVehicle());
+                }
             }
+            // Xe không di chuyển
             else
             {
-                if (!IsPassengerTagWaiting(p)) return;
-                await MovePassengerToVehicleAsync(p, v, nearestWaitingIndex, seatIndex);
-                await NextVehicleCheckAsync(v);
-            }  
+                int seatIndex = GetEmptySeatIndex(p, vehicleManager.GetCurrentVehicle());
+                if (seatIndex == -1)
+                {
+                    // Không add được vào xe, thực hiện di chuyển đến hàng chờ
+                    if (IsWaitingFull())
+                    {
+                        _ = p.Shake();
+                        return;
+                    }
+                    _waitingPassengers[nearestWaitingIndex] = p;
+                    gridManager.MarkCellEmpty(r, c);
+                    SetPassengerTagMoving(p);
+                    
+                    await MovePassengerAlongPathAsync(p, pathToFirstRow);
+                    
+                    await MovePassengerToWaitingAreaAsync(p, nearestWaitingPosition);
+                    
+                    SetPassengerTagWaiting(p);
+                    
+                    // Kiểm tra điều kiện thua
+                    await CheckLevelFailedFullWaiting();
+                }
+                else
+                {
+                    // Thực hiện di chuyển lên xe
+                    vehicleManager.GetCurrentVehicle().data.occupied[seatIndex] = true;
+                    _reversedPassengers++;
+                    
+                    gridManager.MarkCellEmpty(r, c);
+                    SetPassengerTagMoving(p);
+                    
+                    await MovePassengerAlongPathAsync(p, pathToFirstRow);
+                    
+                    SetPassengerTagWaiting(p);
+                    
+                    // Add lên xe
+                    if (!IsPassengerTagWaiting(p)) return;
+                    
+                    await MovePassengerToVehicleAsync(p, vehicleManager.GetCurrentVehicle());
+
+                    _onVehiclePassengers++;
+                    p.transform.SetParent(vehicleManager.GetCurrentVehicle().GetSeatTransformAtIndex(seatIndex));
+                    p.transform.localPosition = Vector3.zero;
+                    SetPassengerTagSitting(p);
+                    
+                    await NextVehicleCheckAsync(vehicleManager.GetCurrentVehicle());
+                }
+            }
         }
         
-        private async UniTask MovePassengerAlongPathAsync(Passenger p, IReadOnlyList<Vector2Int> path, int r, int c, int nearestIndex)
+        private async UniTask MovePassengerAlongPathAsync(Passenger p, IReadOnlyList<Vector2Int> path)
         {
-            _waitingPassengers[nearestIndex] = p;
-            gridManager.MarkCellEmpty(r, c);
-            SetPassengerTagMoving(p);
+            p.SetRunningAnimation(true);
             foreach (Vector2Int step in path)
             {
                 Vector3 worldPosition = Utilities.GridToWorldXZNeg(_columns, step.x, step.y, Constants.CELL_DISTANCE, _cellContainer.position);
-                p.SetRunningAnimation(true);
                 await p.MoveTo(worldPosition, GetMoveDuration(p.transform.position, worldPosition, Constants.PASSENGER_MOVE_SPEED));
             }
+            p.SetRunningAnimation(false);
         }
 
         private async UniTask MovePassengerToWaitingAreaAsync(Passenger p, Vector3 waitingPosition)
@@ -194,22 +266,15 @@ namespace VehicleUnjam
             p.SetRunningAnimation(true);
             await p.MoveTo(waitingPosition, GetMoveDuration(p.transform.position, waitingPosition, Constants.PASSENGER_MOVE_SPEED));
             p.SetRunningAnimation(false);
-            SetPassengerTagWaiting(p);
         }
 
-        private async UniTask MovePassengerToVehicleAsync(Passenger p, Vehicle v, int nearestIndex, int seatIndex)
+        private async UniTask MovePassengerToVehicleAsync(Passenger p, Vehicle v)
         {
-            _waitingPassengers[nearestIndex] = null;
-            v.data.occupied[seatIndex] = true;
             p.SetRunningAnimation(true);
             Vector3 doorPosition = v.GetDoorTransform().position;
             Vector3 destination = new(doorPosition.x, p.transform.position.y, doorPosition.z);
             await p.MoveTo(destination, GetMoveDuration(p.transform.position, destination, Constants.PASSENGER_MOVE_SPEED));
-            _passengersOnVehicle++;
-            p.transform.SetParent(v.GetSeatTransformAtIndex(seatIndex));
-            p.transform.localPosition = Vector3.zero;
             p.TriggerSittingAnimation();
-            SetPassengerTagSitting(p);
         }
 
         // Event
@@ -220,9 +285,8 @@ namespace VehicleUnjam
 
         private async UniTask VehicleArrivedHandleAsync(Vehicle v)
         {
-            _passengersOnVehicle = 0;
-            await CheckLevelFailedFullWaiting();
-            
+            _reversedPassengers = 0;
+            _onVehiclePassengers = 0;
             List<UniTask> tasks = new();
             for (int i = 0; i < _waitingPassengers.Count; i++)
             {
@@ -231,28 +295,36 @@ namespace VehicleUnjam
                 int seatIndex = GetEmptySeatIndex(p, v);
                 if (seatIndex == -1) continue;
                 if (!IsPassengerTagWaiting(p)) continue;
-                tasks.Add(MovePassengerToVehicleAsync(p, v, i, seatIndex));
+                _reversedPassengers++;
+                v.data.occupied[seatIndex] = true;
+                _waitingPassengers[i] = null;
+                tasks.Add(UniTask.Create(async () =>
+                {
+                    await MovePassengerToVehicleAsync(p, v);
+                    _onVehiclePassengers++;
+                    p.transform.SetParent(v.GetSeatTransformAtIndex(seatIndex));
+                    p.transform.localPosition = Vector3.zero;
+                }));
             }
             await UniTask.WhenAll(tasks);
             await NextVehicleCheckAsync(v);
+            await CheckLevelFailedFullWaiting();
         }
 
         private async UniTask NextVehicleCheckAsync(Vehicle v)
         {
-            if (IsVehicleFull(v) && _passengersOnVehicle >= Constants.VEHICLE_SEAT_SLOTS)
-            {
-                await vehicleManager.NextVehicleAsync();
-            }
+            if (!IsVehicleFull(v) || _reversedPassengers < Constants.VEHICLE_SEAT_SLOTS || _onVehiclePassengers < Constants.VEHICLE_SEAT_SLOTS) return;
+            await vehicleManager.NextVehicleAsync();
         }
         
         private async UniTask CheckLevelFailedFullWaiting()
         {
-            Vehicle v = vehicleManager.GetCurrentVehicle();
-            if (v == null) return;
+            if (_isLevelEnded) return;
+            if (vehicleManager.GetCurrentVehicle() == null) return;
             if (!IsWaitingFull() || vehicleManager.IsVehiclesMoving()) return;
             await UniTask.WaitForSeconds(Constants.FAILED_TIME_CHECK);
             if (!IsWaitingFull() || vehicleManager.IsVehiclesMoving()) return;
-            if (!HasValidPassengerForVehicle(v))
+            if (!HasValidPassengerForVehicle(vehicleManager.GetCurrentVehicle()))
             {
                 LevelFailedHandle();
             }

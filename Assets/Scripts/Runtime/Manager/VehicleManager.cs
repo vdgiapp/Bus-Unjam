@@ -17,7 +17,6 @@ namespace VehicleUnjam
         private readonly List<Vehicle> _vehiclePool = new();
         private readonly List<Vehicle> _vehicleActive = new();
         private readonly List<VehicleData> _remainVehicleData = new();
-        private Vehicle _currentVehicle = null;
         private bool _isVehiclesMoving = false;
 
         public async UniTask LoadVehicleFromLevelAsync(LevelData levelData)
@@ -45,8 +44,6 @@ namespace VehicleUnjam
                     _remainVehicleData.Add(data);
                 }
             }
-
-            _currentVehicle = GetActiveVehicles() > 0 ? _vehicleActive[0] : null;
         }
         
         public async UniTask NextVehicleAsync()
@@ -136,13 +133,11 @@ namespace VehicleUnjam
             ReturnVehicleToPool(_vehicleActive[0]);
             _vehicleActive.RemoveAt(0);
             
-            _currentVehicle = GetActiveVehicles() > 0 ? _vehicleActive[0] : null;
-            
             _isVehiclesMoving = false;
             
             if (GetCurrentVehicle() != null)
             {
-                OnVehicleArrived?.Invoke(_currentVehicle);
+                OnVehicleArrived?.Invoke(GetCurrentVehicle());
             }
         }
 
@@ -179,7 +174,12 @@ namespace VehicleUnjam
         
         public Vehicle GetCurrentVehicle()
         {
-            return _currentVehicle;
+            return GetActiveVehicles() > 0 ? _vehicleActive[0] : null;;
+        }
+
+        public Vehicle GetNextVehicle()
+        {
+            return GetActiveVehicles() > 1 ? _vehicleActive[1] : null;
         }
         
         public bool IsVehiclesMoving()
