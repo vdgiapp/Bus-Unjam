@@ -93,6 +93,7 @@ namespace VehicleUnjam.LevelEditor
         public GameObject inspectorModePassengerPrefab;
         public GameObject inspectorModeCellPrefab;
         
+        public ScrollRect statisticsScrollRect;
         public TMP_Text statisticsText;
         
         public RectTransform levelPanel;
@@ -166,7 +167,12 @@ namespace VehicleUnjam.LevelEditor
             SetMainPanelsActive(false);
             LoadAllLevelsFromDisk();
         }
-        
+
+        private void Update()
+        {
+            statisticsText.text = BuildStatistics();
+        }
+
         private void LateUpdate()
         {
             if (_needCanvasUpdate)
@@ -370,9 +376,7 @@ namespace VehicleUnjam.LevelEditor
             {
                 CreateGridCellAt(i, rows, cols);
             }
-            
             Debug.Log($"✓ Generated {totalCells} cells grid ({rows}x{cols})");
-            //UpdateStatisticsDisplay();
         }
 
         private void LoadLevelGrid(LevelData levelData)
@@ -485,7 +489,6 @@ namespace VehicleUnjam.LevelEditor
             
             ShowInspectorForNothing();
             Debug.Log("✓ Added new vehicle");
-            //UpdateStatisticsDisplay();
         }
 
         private void DeleteLastVehicle()
@@ -498,7 +501,6 @@ namespace VehicleUnjam.LevelEditor
             
             ShowInspectorForNothing();
             Debug.Log("✓ Removed last vehicle");
-            //UpdateStatisticsDisplay();
         }
 
         private void LoadVehicleList(LevelData levelData)
@@ -547,7 +549,7 @@ namespace VehicleUnjam.LevelEditor
             ResetGridZoom();
             
             ShowInspectorForNothing();
-            //UpdateStatisticsDisplay();
+            ResetStatisticsScroll();
         }
         
         private void HandleVehicleSelected(VehicleListItem vehicleItem)
@@ -1260,6 +1262,100 @@ namespace VehicleUnjam.LevelEditor
         
         private bool IsValidPassengerIndex(int index) => 
             _currentPassengers.Count > 0 && index >= 0 && index < _currentPassengers.Count;
+
+        private void ResetStatisticsScroll()
+        {
+            statisticsScrollRect.verticalNormalizedPosition = 1;
+            statisticsScrollRect.horizontalNormalizedPosition = 0;
+            Canvas.ForceUpdateCanvases();
+        }
+        
+        private string BuildStatistics()
+        {
+            if (_currentCells == null || _currentCells.Count == 0) return "Chưa có dữ liệu level";
+            
+            int rows = int.Parse(levelRowsInput.text);
+            int cols = int.Parse(levelColumnsInput.text);
+
+            StringBuilder sb = new();
+            sb.AppendLine("====== GRID ======");
+            sb.AppendLine($"Hàng: {rows}");
+            sb.AppendLine($"Cột: {cols}");
+            sb.AppendLine($"Tổng ô: {_currentCells.Count}");
+            
+            Dictionary<eCellType, int> cellTypeCount = new();
+            foreach (var cell in _currentCells)
+            {
+                if (!cellTypeCount.ContainsKey(cell.cellType)) cellTypeCount[cell.cellType] = 0;
+                cellTypeCount[cell.cellType]++;
+            }
+            foreach (var kv in cellTypeCount) sb.AppendLine($"Ô {kv.Key}: {kv.Value}");
+            
+            sb.AppendLine();
+            sb.AppendLine("=== PASSENGER ===");
+            int totalPassengers = 0;
+            Dictionary<ePassengerType, int> passengerByType = new();
+            Dictionary<eColorType, int> passengerByColor = new();
+            for (int i = 0;i < _currentPassengers.Count; i++)
+            {
+                CellData cell = _currentCells[i];
+                PassengerData passenger = _currentPassengers[i];
+                if (cell is { cellType: eCellType.Tunnel, extraData: TunnelCellData tunnel })
+                {
+                    foreach (var p in tunnel.passengers)
+                    {
+                        if (p == null) continue;
+                        if (!passengerByType.ContainsKey(p.passengerType)) passengerByType[p.passengerType] = 0;
+                        passengerByType[p.passengerType]++;
+                        if (!passengerByColor.ContainsKey(p.colorType)) passengerByColor[p.colorType] = 0;
+                        passengerByColor[p.colorType]++;
+                        totalPassengers++;
+                    }
+                }
+                else
+                {
+                    if (!cell.isOccupied || Utilities.IsCellTypeIgnoreOccupied(cell.cellType)) continue;
+                    if (!passengerByType.ContainsKey(passenger.passengerType)) passengerByType[passenger.passengerType] = 0;
+                    passengerByType[passenger.passengerType]++;
+                    if (!passengerByColor.ContainsKey(passenger.colorType)) passengerByColor[passenger.colorType] = 0;
+                    passengerByColor[passenger.colorType]++;
+                    totalPassengers++;
+                }
+            }
+            
+            sb.AppendLine($"Tổng hành khách: {totalPassengers}");
+            sb.AppendLine("- Theo type:");
+            foreach (var kv in passengerByType) sb.AppendLine($"  {kv.Key}: {kv.Value}");
+
+            sb.AppendLine("- Theo màu:");
+            foreach (var kv in passengerByColor) sb.AppendLine($"  {kv.Key}: {kv.Value}");
+            
+            sb.AppendLine();
+            sb.AppendLine("=== VEHICLE ===");
+            int totalVehicles = _currentVehicles.Count;
+            Dictionary<eColorType, int> vehicleByColor = new();
+            foreach (var v in _currentVehicles)
+            {
+                if (!vehicleByColor.ContainsKey(v.colorType)) vehicleByColor[v.colorType] = 0;
+                vehicleByColor[v.colorType]++;
+            }
+
+            sb.AppendLine($"Tổng xe: {totalVehicles}");
+            foreach (var kv in vehicleByColor) sb.AppendLine($"Xe màu {kv.Key}: {kv.Value}");
+            
+            sb.AppendLine();
+            sb.AppendLine("=== VALIDATION ===");
+
+            foreach (var kv in passengerByColor)
+            {
+                if (!vehicleByColor.ContainsKey(kv.Key)) sb.AppendLine($"[!] Có passenger màu {kv.Key} nhưng không có xe");
+            }
+
+            int soDu = totalPassengers % totalVehicles;
+            if (soDu != 0)
+                sb.AppendLine($"[!] Số lượng hành khách không chia hết cho số xe {totalPassengers}/{totalVehicles} (dư {soDu} hành khách)");
+            return sb.ToString();
+        }
     }
 }
 #endif
