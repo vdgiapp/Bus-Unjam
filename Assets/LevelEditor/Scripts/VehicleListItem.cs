@@ -13,7 +13,11 @@ namespace VehicleUnjam.LevelEditor
 
         private void Awake()
         {
-            _vehicleButton.onClick.AddListener(OnSelected);
+            _vehicleButton.onClick.AddListener(() =>
+            {
+                LevelEditorManager.OnVehicleSelected?.Invoke(this);
+                Canvas.ForceUpdateCanvases();
+            });
         }
 
         private void OnDestroy()
@@ -21,16 +25,11 @@ namespace VehicleUnjam.LevelEditor
             _vehicleButton.onClick.RemoveAllListeners();
         }
 
-        private void OnSelected()
-        {
-            LevelEditorManager.OnVehicleSelected?.Invoke(this);
-            Canvas.ForceUpdateCanvases();
-        }
-
         public void InitInfo(int orderIndex, Color vehicleColor)
         {
             _vehicleImage.color = vehicleColor;
             _orderText.text = orderIndex.ToString();
+            Canvas.ForceUpdateCanvases();
         }
     }
 }

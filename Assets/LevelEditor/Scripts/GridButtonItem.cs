@@ -12,18 +12,16 @@ namespace VehicleUnjam.LevelEditor
         
         private void Awake()
         {
-            _button.onClick.AddListener(OnClicked);
+            _button.onClick.AddListener(() =>
+            {
+                LevelEditorManager.OnGridCellClicked?.Invoke(this);
+                Canvas.ForceUpdateCanvases();
+            });
         }
 
         private void OnDestroy()
         {
             _button.onClick.RemoveAllListeners();
-        }
-
-        private void OnClicked()
-        {
-            LevelEditorManager.OnGridCellClicked?.Invoke(this);
-            Canvas.ForceUpdateCanvases();
         }
     }
 }

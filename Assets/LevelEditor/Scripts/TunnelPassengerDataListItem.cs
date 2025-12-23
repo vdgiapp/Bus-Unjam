@@ -49,6 +49,7 @@ namespace VehicleUnjam.LevelEditor
             passengerIndex = passengerIdx;
             _indexText.text = passengerIndex.ToString();
             _colorDropdown.SetValueWithoutNotify((int)color);
+            Canvas.ForceUpdateCanvases();
         }
     }
 }

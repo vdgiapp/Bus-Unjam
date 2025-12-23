@@ -21,13 +21,15 @@ namespace VehicleUnjam.LevelEditor
                 eCellType.Tunnel => _tunnelSprite,
                 _ => null
             };
-            _image.color = _image.sprite == null ? Color.clear : Color.white;
+            if (_image.sprite == null) _image.color = Color.clear;
             _image.preserveAspect = true;
+            Canvas.ForceUpdateCanvases();
         }
         
         public void SetSpriteRotation(float rotationDegrees)
         {
             _image.rectTransform.rotation = Quaternion.Euler(0, 0, rotationDegrees);
+            Canvas.ForceUpdateCanvases();
         }
     }
 }

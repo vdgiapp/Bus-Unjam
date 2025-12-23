@@ -15,25 +15,18 @@ namespace VehicleUnjam.LevelEditor
         
         private void Awake()
         {
-            SetupColorDropdown();
+            List<TMP_Dropdown.OptionData> colorOptions = new();
+            foreach (eColorType color in Enum.GetValues(typeof(eColorType)))
+            {
+                colorOptions.Add(new(color.ToString()));
+            }
+            _dropDown.options = colorOptions;
+            _dropDown.onValueChanged.AddListener(OnColorChanged);
         }
         
         private void OnDestroy()
         {
             _dropDown.onValueChanged.RemoveAllListeners();
-        }
-
-        private void SetupColorDropdown()
-        {
-            List<TMP_Dropdown.OptionData> colorOptions = new();
-            
-            foreach (eColorType color in Enum.GetValues(typeof(eColorType)))
-            {
-                colorOptions.Add(new(color.ToString()));
-            }
-            
-            _dropDown.options = colorOptions;
-            _dropDown.onValueChanged.AddListener(OnColorChanged);
         }
 
         private void OnColorChanged(int colorIndex)
@@ -47,6 +40,7 @@ namespace VehicleUnjam.LevelEditor
             vehicleIndex = vehicleIdx;
             _dropDown.SetValueWithoutNotify((int)color);
             _orderText.text = $"Vị trí: {vehicleIndex}";
+            Canvas.ForceUpdateCanvases();
         }
     }
 }

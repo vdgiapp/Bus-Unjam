@@ -25,18 +25,15 @@ namespace VehicleUnjam.LevelEditor
                 ePassengerType.Bomb => _bombSprite,
                 _ => null
             };
-            
-            if (_image.sprite == null)
-            {
-                _image.color = Color.clear;
-            }
-            
+            if (_image.sprite == null) _image.color = Color.clear;
             _image.preserveAspect = true;
+            Canvas.ForceUpdateCanvases();
         }
 
         public void SetSpriteColor(Color color)
         {
             _image.color = color;
+            Canvas.ForceUpdateCanvases();
         }
     }
 }

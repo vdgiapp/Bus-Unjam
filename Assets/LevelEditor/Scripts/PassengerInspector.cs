@@ -89,16 +89,19 @@ namespace VehicleUnjam.LevelEditor
         public void InitInfoRope(int rope)
         {
             _ropeInputField.SetTextWithoutNotify(rope.ToString());
+            Canvas.ForceUpdateCanvases();
         }
 
         public void InitInfoBomb(int bomb)
         {
             _bombInputField.SetTextWithoutNotify(bomb.ToString());
+            Canvas.ForceUpdateCanvases();
         }
 
         public void InitInfoCloak(bool isRevealed)
         {
             _cloakIsToggle.SetIsOnWithoutNotify(isRevealed);
+            Canvas.ForceUpdateCanvases();
         }
         
         private void UpdateInspectorByType(ePassengerType type)
@@ -106,6 +109,7 @@ namespace VehicleUnjam.LevelEditor
             _ropeInspectorContent.gameObject.SetActive(type == ePassengerType.Rope);
             _bombInspectorContent.gameObject.SetActive(type == ePassengerType.Bomb);
             _cloakInspectorContent.gameObject.SetActive(type == ePassengerType.Cloak);
+            Canvas.ForceUpdateCanvases();
         }
     }
 }

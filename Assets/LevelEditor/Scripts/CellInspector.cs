@@ -92,6 +92,7 @@ namespace VehicleUnjam.LevelEditor
         private void HandlePassengerRemoveRequested(int cellIdx, int passengerIndex)
         {
             LevelEditorManager.OnTunnelPassengerRemoved?.Invoke(cellIdx, passengerIndex);
+            Canvas.ForceUpdateCanvases();
         }
 
         public void InitInfo(int cellIdx, eCellType cellType, int row, int col)
@@ -135,6 +136,7 @@ namespace VehicleUnjam.LevelEditor
         private void UpdateInspectorByType(eCellType type)
         {
             _tunnelInspectorContent.gameObject.SetActive(type == eCellType.Tunnel);
+            Canvas.ForceUpdateCanvases();
         }
     }
 }

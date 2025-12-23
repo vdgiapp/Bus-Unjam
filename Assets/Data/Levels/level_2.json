@@ -1,0 +1,28 @@
+{
+    "$id": 0,
+    "$type": "0|VehicleUnjam.LevelData, Assembly-CSharp",
+    "rows": 0,
+    "columns": 0,
+    "waitAreaSize": 0,
+    "cells": {
+        "$id": 1,
+        "$type": "1|System.Collections.Generic.List`1[[VehicleUnjam.CellData, Assembly-CSharp]], mscorlib",
+        "$rlength": 0,
+        "$rcontent": [
+        ]
+    },
+    "passengers": {
+        "$id": 2,
+        "$type": "2|System.Collections.Generic.List`1[[VehicleUnjam.PassengerData, Assembly-CSharp]], mscorlib",
+        "$rlength": 0,
+        "$rcontent": [
+        ]
+    },
+    "vehicles": {
+        "$id": 3,
+        "$type": "3|System.Collections.Generic.List`1[[VehicleUnjam.VehicleData, Assembly-CSharp]], mscorlib",
+        "$rlength": 0,
+        "$rcontent": [
+        ]
+    }
+}
