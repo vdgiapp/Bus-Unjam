@@ -49,10 +49,10 @@ MonoBehaviour:
   data:
     colorType: 0
     passengerType: 0
+    extraDataJson: 
   _animator: {fileID: 7128810996934944009}
   _skinnedMeshRenderer: {fileID: 8191471728803981450}
   _specifiedColorMaterialIndex: 0
-  _outline: {fileID: 0}
 --- !u!65 &4852096480426827995
 BoxCollider:
   m_ObjectHideFlags: 0

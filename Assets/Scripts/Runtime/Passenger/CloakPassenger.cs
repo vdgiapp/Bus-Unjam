@@ -1,0 +1,55 @@
+﻿using System;
+using DG.Tweening;
+using UnityEngine;
+
+namespace VehicleUnjam
+{
+    public class CloakPassenger : Passenger
+    {
+        // Data
+        [HideInInspector] public CloakPassengerData cloakData;
+
+        // View
+        [SerializeField] private GameObject _cloakObject;
+        [SerializeField] private float _cloakOffScaleY = 0.1f;
+        [SerializeField] private float _cloakOnScaleY = 1f;
+        [SerializeField] private float _tweenDuration = 0.2f;
+        
+        private Tween _cloakOffTween;
+        private Tween _cloakOnTween;
+
+        public Tween CloakOff()
+        {
+            if (_cloakObject == null) return null;
+            _cloakOffTween?.Kill();
+            _cloakOffTween = _cloakObject.transform.DOScaleY(_cloakOffScaleY, _tweenDuration);
+            return _cloakOffTween;
+        }
+
+        public Tween CloakOn()
+        {
+            if (_cloakObject == null) return null;
+            _cloakOnTween?.Kill();
+            _cloakOnTween = _cloakObject.transform.DOScaleY(_cloakOnScaleY, _tweenDuration);
+            return _cloakOnTween;
+        }
+        
+        public void ToggleCloak(bool toggle)
+        {
+            _cloakObject.SetActive(toggle);
+        }
+
+        // For undo booster
+        public void PickupCloak()
+        {
+            _cloakObject.transform.parent = transform;
+            _cloakObject.name = "Cloak";
+        }
+        
+        public void DropCloak()
+        {
+            _cloakObject.transform.parent = null;
+            _cloakObject.name = "Dropped Cloak";
+        }
+    }
+}

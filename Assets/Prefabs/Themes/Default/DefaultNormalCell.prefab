@@ -50,6 +50,7 @@ MonoBehaviour:
   data:
     cellType: 0
     isOccupied: 0
+    extraDataJson: 
   _animator: {fileID: 0}
 --- !u!65 &6819033761957951483
 BoxCollider:

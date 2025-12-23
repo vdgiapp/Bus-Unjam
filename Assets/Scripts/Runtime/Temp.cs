@@ -17,7 +17,7 @@ namespace VehicleUnjam
             await SceneManager.UnloadSceneAsync("Menu");
             await SceneManager.LoadSceneAsync("Level", LoadSceneMode.Additive);
             SceneManager.SetActiveScene(SceneManager.GetSceneByName("Level"));
-            await InstantiateAsync(GameManager.GetCurrentTheme().GetEnvironmentPrefab(), null).ToUniTask();
+            await InstantiateAsync(GameManager.GetCurrentTheme()?.environmentPrefab, null).ToUniTask();
 
             CellData[] cellList =
             {
@@ -138,12 +138,12 @@ namespace VehicleUnjam
             
             LevelData lev = (new LevelData()
             {
-                columns = 6,
                 rows = 5,
+                columns = 6,
                 waitAreaSize = 5,
-                cells = cellList,
-                passengers = passList,
-                vehicles = vehList
+                cells = new(cellList),
+                passengers = new(passList),
+                vehicles = new(vehList)
             });
             await LevelHandler.instance.InitLevel(lev);
         }

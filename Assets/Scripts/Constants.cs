@@ -23,6 +23,7 @@ namespace VehicleUnjam
         public const int PASSENGER_SHAKE_VIBRATO = 3;
         public const float PASSENGER_ROTATE_DURATION = 0.2f;
         public const float PASSENGER_MOVE_SPEED = 2f;
+        public const int PASSENGER_MAX_ROPE_COUNT = 4;
 
         // Vehicle
         public const int VEHICLE_SEAT_SLOTS = 3;

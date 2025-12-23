@@ -15,177 +15,202 @@ namespace VehicleUnjam
         [SerializeField] private Transform _vehicleContainer;
         
         private readonly List<Vehicle> _vehiclePool = new();
-        private readonly List<Vehicle> _vehicleActive = new();
-        private readonly List<VehicleData> _remainVehicleData = new();
-        private bool _isVehiclesMoving = false;
-
+        private readonly List<Vehicle> _activeVehicles = new();
+        private readonly List<VehicleData> _pendingVehicleData = new();
+        
+        private bool _isVehiclesMoving;
+        
+        private Sequence _vehicleMoveSequence;
+        
         public async UniTask LoadVehicleFromLevelAsync(LevelData levelData)
         {
-            if (levelData == null || levelData.vehicles == null || levelData.vehicles.Length == 0) return;
+            if (!IsValidLevelData(levelData)) return;
             
-            GameObject prefab = GameManager.GetCurrentTheme().GetVehiclePrefab();
-            GameObject[] loaded = 
-                await InstantiateAsync(prefab, Constants.VEHICLE_POOL_SIZE, _vehicleContainer)
-                    .ToUniTask();
+            // Initialize vehicle pool
+            GameObject prefab = GameManager.GetCurrentTheme()?.vehiclePrefab();
+            GameObject[] loaded = await InstantiateAsync(prefab, Constants.VEHICLE_POOL_SIZE, _vehicleContainer).ToUniTask();
             
-            // Add to vehicle pool and hide it
+            // Add vehicles to pool
             foreach (GameObject go in loaded)
             {
-                Vehicle v = go.GetComponent<Vehicle>();
-                v.gameObject.SetActive(false);
-                _vehiclePool.Add(v);
+                Vehicle vehicle = go.GetComponent<Vehicle>();
+                vehicle.gameObject.SetActive(false);
+                _vehiclePool.Add(vehicle);
             }
-
-            // Spawn vehicle from level data
+            
+            // Spawn initial vehicles
             foreach (VehicleData data in levelData.vehicles)
             {
-                if (!TrySpawnNewVehicleFromPool(data))
+                if (!TrySpawnVehicle(data))
                 {
-                    _remainVehicleData.Add(data);
+                    _pendingVehicleData.Add(data);
                 }
             }
         }
         
-        public async UniTask NextVehicleAsync()
+        public Sequence NextVehicle()
         {
-            if (GetActiveVehicles() == 0 || IsVehiclesMoving()) return;
-            if (GetCurrentVehicle() != null)
+            if (!CanMoveToNextVehicle()) return null;
+            
+            // Set flag
+            _isVehiclesMoving = true;
+            
+            // Vehicle movement sequence
+            _vehicleMoveSequence?.Kill();
+            _vehicleMoveSequence = DOTween.Sequence();
+            _vehicleMoveSequence.SetAutoKill();
+            
+            for (int i = 0; i < _activeVehicles.Count; i++)
             {
-                await MoveToNextDestinationAsync();
-                if (!TrySpawnNewVehicle() && !HasBuses())
+                Vector3 targetPosition = Vector3.zero;
+                Vehicle vehicle = _activeVehicles[i];
+                if (i == 0)
                 {
-                    OnAllVehicleDone?.Invoke();
+                    // Position off-screen to the right
+                    targetPosition.x = 2.5f * Constants.VEHICLE_DISTANCE;
+                    
+                    // Move first vehicle out of screen
+                    _vehicleMoveSequence.Join(vehicle.MoveLocalTo(targetPosition, Constants.VEHICLE_MOVE_DURATION));
+                }
+                else
+                {
+                    // Position in queue
+                    targetPosition.x = -1f * (i - 1) * Constants.VEHICLE_DISTANCE;
+                    
+                    // Move other vehicles forward
+                    _vehicleMoveSequence.Join(vehicle.MoveLocalTo(targetPosition, Constants.VEHICLE_MOVE_DURATION, Ease.OutQuad));
                 }
             }
+            
+            _vehicleMoveSequence.onComplete += OnVehicleMoveSequenceComplete;
+            return _vehicleMoveSequence;
+        }
+        
+        private void OnVehicleMoveSequenceComplete()
+        {
+            // Remove first vehicle
+            Vehicle firstVehicle = _activeVehicles[0];
+                
+            // Return vehicle to pool
+            firstVehicle.transform.DOKill();
+            firstVehicle.gameObject.SetActive(false);
+                
+            // Remove from active list
+            _activeVehicles.RemoveAt(0);
+                
+            // Reset flag
+            _isVehiclesMoving = false;
+                
+            // Notify vehicle arrival
+            Vehicle currentVehicle = GetCurrentVehicle();
+            if (currentVehicle != null) OnVehicleArrived?.Invoke(currentVehicle);
+                
+            // Try to spawn new vehicle if there are any pending
+            bool spawned = TrySpawnNextVehicle();
+            bool hasMoreVehicles = HasVehiclesRemaining();
+            
+            // Notify level complete if no more vehicles to spawn
+            if (!spawned && !hasMoreVehicles) OnAllVehicleDone?.Invoke();
         }
 
-        private bool TrySpawnNewVehicle()
+        private bool TrySpawnNextVehicle()
         {
-            if (GetRemainLevelVehicles() == 0) return false;
-            for (int i = 0; i < GetRemainLevelVehicles(); i++)
+            if (!HasPendingVehicles()) return false;
+            
+            for (int i = 0; i < _pendingVehicleData.Count; i++)
             {
-                VehicleData data = _remainVehicleData[i];
-                if (TrySpawnNewVehicleFromPool(data))
+                VehicleData data = _pendingVehicleData[i];
+                if (TrySpawnVehicle(data))
                 {
-                    _remainVehicleData.RemoveAt(i);
+                    _pendingVehicleData.RemoveAt(i);
                     return true;
                 }
             }
             return false;
         }
         
-        private bool TrySpawnNewVehicleFromPool(VehicleData data)
+        private bool TrySpawnVehicle(VehicleData data)
         {
-            Vehicle veh = GetVehicleFromPool();
-            if (veh == null) return false;
-            
-            // destroy passenger (or anything else) in vehicle's seats
+            Vehicle vehicle = GetAvailableVehicleFromPool();
+            if (vehicle == null) return false;
+
+            // Clear vehicle seats
             for (int i = 0; i < Constants.VEHICLE_SEAT_SLOTS; i++)
             {
-                Transform seat = veh.GetSeatTransformAtIndex(i);
+                Transform seat = vehicle.GetSeatTransformAtIndex(i);
                 foreach (Transform child in seat)
                 {
                     child.gameObject.SetActive(false);
-                    Destroy(child.gameObject);
+                    child.SetParent(null);
+                    //Destroy(child.gameObject);
                 }
             }
             
-            veh.data = data;
-            veh.SetColor(GameManager.GetColorByType(data.colorType));
-            veh.transform.localPosition = new Vector3(-1f * GetActiveVehicles() * Constants.VEHICLE_DISTANCE, 0.0f, 0.0f);
-            veh.gameObject.SetActive(true);
-            _vehicleActive.Add(veh);
+            // Configure vehicle
+            vehicle.data = data;
+            vehicle.SetColor(GameManager.GetColorByType(data.colorType));
+            
+            // Position vehicle
+            float xPosition = -1f * _activeVehicles.Count * Constants.VEHICLE_DISTANCE;
+            vehicle.transform.localPosition = new Vector3(xPosition, 0f, 0f);
+            
+            // Activate vehicle
+            vehicle.gameObject.SetActive(true);
+            _activeVehicles.Add(vehicle);
+            
             return true;
         }
-        
-        private Vehicle GetVehicleFromPool()
+
+        private Vehicle GetAvailableVehicleFromPool()
         {
-            Vehicle ret = null;
-            foreach (Vehicle veh in _vehiclePool)
+            foreach (Vehicle vehicle in _vehiclePool)
             {
-                if (veh.gameObject.activeSelf) continue;
-                ret = veh;
-                break;
+                if (!vehicle.gameObject.activeSelf)
+                {
+                    return vehicle;
+                }
             }
-            return ret;
+            return null;
         }
         
-        private void ReturnVehicleToPool(Vehicle veh)
+        private bool IsValidLevelData(LevelData levelData)
         {
-            veh.transform.DOKill();
-            veh.gameObject.SetActive(false);
-        }
-        
-        private async UniTask MoveToNextDestinationAsync()
-        {
-            if (GetActiveVehicles() == 0 || IsVehiclesMoving()) return;
-            _isVehiclesMoving = true;
-            
-            int index = 0;
-            UniTask[] tasks = new UniTask[GetActiveVehicles()];
-            foreach (Vehicle veh in _vehicleActive)
-            {
-                tasks[index] = MoveVehicleIndexAsync(veh, index);
-                index++;
-            }
-            await UniTask.WhenAll(tasks);
-            
-            ReturnVehicleToPool(_vehicleActive[0]);
-            _vehicleActive.RemoveAt(0);
-            
-            _isVehiclesMoving = false;
-            
-            if (GetCurrentVehicle() != null)
-            {
-                OnVehicleArrived?.Invoke(GetCurrentVehicle());
-            }
+            return levelData.vehicles is { Count: > 0 };
         }
 
-        private async UniTask MoveVehicleIndexAsync(Vehicle veh, int index)
+        private bool CanMoveToNextVehicle()
         {
-            // Move first vehicle out of screen
-            Vector3 pos = veh.transform.localPosition;
-            if (index == 0)
-            {
-                pos.x = 2.5f * Constants.VEHICLE_DISTANCE;
-                await veh.MoveLocalTo(pos, Constants.VEHICLE_MOVE_DURATION);
-            }
-            else
-            {
-                pos.x = -1.0f * (index - 1) * Constants.VEHICLE_DISTANCE;
-                await veh.MoveLocalTo(pos, Constants.VEHICLE_MOVE_DURATION, Ease.OutQuad);
-            }
+            return HasActiveVehicles() && !IsVehiclesMoving() && GetCurrentVehicle() != null;
+        }
+
+        private bool HasActiveVehicles()
+        {
+            return _activeVehicles.Count > 0;
         }
         
-        private bool HasBuses()
+        private bool HasPendingVehicles()
         {
-            return GetActiveVehicles() > 0 || GetRemainLevelVehicles() > 0;
+            return _pendingVehicleData.Count > 0;
         }
         
-        private int GetRemainLevelVehicles()
+        private bool HasVehiclesRemaining()
         {
-            return _remainVehicleData.Count;
+            return HasActiveVehicles() || HasPendingVehicles();
         }
-        
-        private int GetActiveVehicles()
-        {
-            return _vehicleActive.Count;
-        }
-        
+
         public Vehicle GetCurrentVehicle()
         {
-            return GetActiveVehicles() > 0 ? _vehicleActive[0] : null;;
+            return HasActiveVehicles() ? _activeVehicles[0] : null;
         }
 
         public Vehicle GetNextVehicle()
         {
-            return GetActiveVehicles() > 1 ? _vehicleActive[1] : null;
+            return _activeVehicles.Count > 1 ? _activeVehicles[1] : null;
         }
-        
+                
         public bool IsVehiclesMoving()
         {
             return _isVehiclesMoving;
         }
-
     }
 }

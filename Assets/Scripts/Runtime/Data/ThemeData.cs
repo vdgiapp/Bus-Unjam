@@ -4,7 +4,7 @@ using UnityEngine;
 namespace VehicleUnjam
 {
     [Serializable]
-    public class ThemeData
+    public struct ThemeData
     {
         [SerializeField] private GameObject _environmentPrefab;
         [SerializeField] private GameObject _waitingTilePrefab;
@@ -12,20 +12,9 @@ namespace VehicleUnjam
         [SerializeField] private GameObject _vehiclePrefab;
         [SerializeField] private CellSettingsSO _cellSettings;
         
-        public GameObject GetEnvironmentPrefab()
-        {
-            return _environmentPrefab;
-        }
-        
-        public GameObject GetWaitingTilePrefab()
-        {
-            return _waitingTilePrefab;
-        }
-
-        public GameObject GetVehiclePrefab()
-        {
-            return _vehiclePrefab;
-        }
+        public GameObject environmentPrefab => _environmentPrefab;
+        public GameObject waitingTilePrefab() => _waitingTilePrefab;
+        public GameObject vehiclePrefab() => _vehiclePrefab;
         
         public GameObject GetCellPrefabByType(eCellType type)
         {

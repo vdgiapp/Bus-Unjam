@@ -1,0 +1,16 @@
+﻿using UnityEngine;
+
+namespace VehicleUnjam
+{
+    [CreateAssetMenu(fileName = "CellSettings", menuName = "Vehicle Unjam/Cell Settings")]
+    public class CellSettingsSO : ScriptableObject
+    {
+        [SerializeField]
+        private KeyValue<eCellType, GameObject>[] _list;
+        public GameObject GetPrefabByType(eCellType type)
+        {
+            foreach (var kv in _list) if (kv.Key == type) return kv.Value;
+            return null;
+        }
+    }
+}
