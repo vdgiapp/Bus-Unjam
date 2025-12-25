@@ -4,9 +4,6 @@ namespace VehicleUnjam
 {
     public class RopePassenger : Passenger
     {
-        // Data
-        [HideInInspector] public RopePassengerData ropeData;
-        
         // View
         [SerializeField] private GameObject[] _ropeObjects;
         [SerializeField] private Transform _ropeRoot;

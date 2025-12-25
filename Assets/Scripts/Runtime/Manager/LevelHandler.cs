@@ -307,7 +307,8 @@ namespace VehicleUnjam
         [SerializeField] private TMP_Text _tempTmpText;
         [SerializeField] private TMP_Text _fpsTmpText;
 
-        [Header("Managers")] [SerializeField] private GridManager gridManager;
+        [Header("Managers")]
+        [SerializeField] private GridManager gridManager;
         [SerializeField] private PassengerManager passengerManager;
         [SerializeField] private VehicleManager vehicleManager;
 
@@ -390,13 +391,13 @@ namespace VehicleUnjam
 
             if (IsPassengerBusy(passenger)) return;
 
-            Vector2Int? gridPos = passengerManager.GetGridPositionOfPassenger(passenger);
-            if (!gridPos.HasValue)
+            var gridPos = passengerManager.GetGridPositionOfPassenger(passenger);
+            if (gridPos.row == -1 || gridPos.column == -1)
             {
                 Debug.LogWarning($"Can't find grid position of Passenger {passenger}");
                 return;
             }
-            HandlePassengerSelection(gridPos.Value.x, gridPos.Value.y);
+            HandlePassengerSelection(gridPos.row, gridPos.column);
         }
 
         private void HandlePassengerSelection(int row, int col)
@@ -425,13 +426,13 @@ namespace VehicleUnjam
             {
                 _waitingPassengers[waitingIndex] = passenger;
                 gridManager.MarkCellEmpty(row, col);
-                SetPassengerTagMoving(passenger);
+                passengerManager.SetStateOfPassenger(passenger, PassengerManager.ePassengerState.Moving);
 
                 MovePassengerAlongPath(passenger, path).onComplete += () =>
                 {
                     MovePassengerToPosition(passenger, waitingPosition).onComplete += () =>
                     {
-                        SetPassengerTagWaiting(passenger);
+                        passengerManager.SetStateOfPassenger(passenger, PassengerManager.ePassengerState.Waiting);
                         
                         // Nếu xe vẫn đang di chuyển thì passenger dừng
                         if (vehicleManager.IsVehiclesMoving()) return;
@@ -472,13 +473,13 @@ namespace VehicleUnjam
                 {
                     _waitingPassengers[waitingIndex] = passenger;
                     gridManager.MarkCellEmpty(row, col);
-                    SetPassengerTagMoving(passenger);
+                    passengerManager.SetStateOfPassenger(passenger, PassengerManager.ePassengerState.Moving);
 
                     MovePassengerAlongPath(passenger, path).onComplete += () =>
                     {
                         MovePassengerToPosition(passenger, waitingPosition).onComplete += () =>
                         {
-                            SetPassengerTagWaiting(passenger);
+                            passengerManager.SetStateOfPassenger(passenger, PassengerManager.ePassengerState.Waiting);
                             
                             // Check dieu kien thua
                             Debug.Log("03");
@@ -491,13 +492,13 @@ namespace VehicleUnjam
                     _reversedPassengers++;
                     
                     gridManager.MarkCellEmpty(row, col);
-                    SetPassengerTagMoving(passenger);
+                    passengerManager.SetStateOfPassenger(passenger, PassengerManager.ePassengerState.Moving);
 
                     MovePassengerAlongPath(passenger, path).onComplete += () =>
                     {
-                        SetPassengerTagWaiting(passenger);
+                        passengerManager.SetStateOfPassenger(passenger, PassengerManager.ePassengerState.Waiting);
                         
-                        if (!IsPassengerTagWaiting(passenger)) return;
+                        if (passengerManager.GetStateOfPassenger(passenger) != PassengerManager.ePassengerState.Waiting) return;
                         
                         Debug.Log("04");
                         
@@ -507,7 +508,7 @@ namespace VehicleUnjam
                             _onVehiclePassengers++;
                             passenger.transform.SetParent(vehicle.GetSeatTransformAtIndex(seatIndex));
                             passenger.transform.localPosition = Vector3.zero;
-                            SetPassengerTagSitting(passenger);
+                            passengerManager.SetStateOfPassenger(passenger, PassengerManager.ePassengerState.Sitting);
                             
                             Debug.Log("04-1");
                             // Check next vehicle
@@ -653,39 +654,10 @@ namespace VehicleUnjam
             return false;
         }
 
-        private void SetPassengerTagWaiting(Passenger passenger)
-        {
-            passenger.tag = Constants.TAG_NAME_WAITING;
-        }
-
-        private void SetPassengerTagMoving(Passenger passenger)
-        {
-            passenger.tag = Constants.TAG_NAME_MOVING;
-        }
-
-        private void SetPassengerTagSitting(Passenger passenger)
-        {
-            passenger.tag = Constants.TAG_NAME_SITTING;
-        }
-
-        private bool IsPassengerTagWaiting(Passenger passenger)
-        {
-            return passenger.CompareTag(Constants.TAG_NAME_WAITING);
-        }
-
-        private bool IsPassengerTagMoving(Passenger passenger)
-        {
-            return passenger.CompareTag(Constants.TAG_NAME_MOVING);
-        }
-
-        private bool IsPassengerTagSitting(Passenger passenger)
-        {
-            return passenger.CompareTag(Constants.TAG_NAME_SITTING);
-        }
-        
         private bool IsPassengerBusy(Passenger passenger)
         {
-            return IsPassengerTagMoving(passenger) || IsPassengerTagWaiting(passenger) || IsPassengerTagSitting(passenger);
+            PassengerManager.ePassengerState state = passengerManager.GetStateOfPassenger(passenger);
+            return state is not PassengerManager.ePassengerState.Idle;
         }
 
         private bool IsWaitingFull()

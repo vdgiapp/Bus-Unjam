@@ -5,14 +5,11 @@ namespace VehicleUnjam
 {
     public class BombPassenger : Passenger
     {
-        // Data
-        [HideInInspector] public BombPassengerData bombData;
-        
         // View
         [SerializeField] private GameObject _bombObject;
         [SerializeField] private TMP_Text _textTmp;
 
-        public void SetBombText(int time)
+        public void SetBombTime(int time)
         {
             if (time <= 0)
             {

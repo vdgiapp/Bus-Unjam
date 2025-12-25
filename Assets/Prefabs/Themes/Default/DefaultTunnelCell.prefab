@@ -52,7 +52,10 @@ MonoBehaviour:
   data:
     cellType: 0
     isOccupied: 0
-    extraDataJson: 
+  _animator: {fileID: 0}
+  tunnelData:
+    direction: 0
+    passengers: []
   _tunnelObject: {fileID: 2252534078317891527}
   _textTmp: {fileID: 1408936530344781444}
 --- !u!65 &6819033761957951483

@@ -8,13 +8,16 @@ namespace VehicleUnjam
     [DisallowMultipleComponent]
     public class GridManager : MonoBehaviour
     {
+        public static event Action<int> NewWaitingTileAdded;
+        public static event Action<int, int> CellMarkedEmpty;
+        public static event Action<int, int> CellMarkedOccupied;
+        
         [SerializeField] private Transform _waitingContainer;
         [SerializeField] private Transform _cellContainer;
-        
+
         private Cell[,] _cellGrid;
-        private readonly Dictionary<Cell, Vector2Int> _cellPositionMap = new();
-        
-        private readonly List<Vector3> _waitingTilePositions = new();
+        private readonly Dictionary<Cell, (int, int)> _cellPositionMap = new();
+        private readonly List<Transform> _waitingTiles = new();
 
         private int _rows;
         private int _columns;
@@ -27,6 +30,8 @@ namespace VehicleUnjam
             _rows = levelData.rows;
             _columns = levelData.columns;
             _cellGrid = new Cell[_rows, _columns];
+            _cellPositionMap.Clear();
+            _waitingTiles.Clear();
             
             // Spawn cells
             List<UniTask> tasks = new();
@@ -34,10 +39,10 @@ namespace VehicleUnjam
             {
                 for (int col = 0; col < _columns; col++)
                 {
-                    if (ShouldSpawnCellAt(levelData, row, col))
+                    CellData cellData = levelData.GetCellData(row, col);
+                    if (cellData.cellType != eCellType.None)
                     {
-                        CellData data = levelData.GetCellData(row, col);
-                        tasks.Add(SpawnCellAsync(row, col, data));
+                        tasks.Add(SpawnCellAsync(row, col, cellData));
                     }
                 }
             }
@@ -50,13 +55,21 @@ namespace VehicleUnjam
             GameObject prefab = GetCellPrefab(data.cellType);
 
             Cell cell = await InstantiateCellAsync(prefab, worldPosition);
-            
-            // Configure cell
-            cell.data = data;
-            
-            // Register cell
+            cell.InitData(data);
+
+            switch (cell)
+            {
+                case TunnelCell tunnelCell
+                    when (data is { cellType: eCellType.Tunnel, extraData: TunnelCellData tunnelData }):
+                {
+                    tunnelCell.SetTunnelDirection(tunnelData.direction);
+                    tunnelCell.SetTunnelCount(tunnelData.passengers.Count);
+                    break;
+                }
+            }
+
             _cellGrid[row, col] = cell;
-            _cellPositionMap.Add(cell, new Vector2Int(row, col));
+            _cellPositionMap.Add(cell, (row, col));
         }
         
         public async UniTask LoadWaitingTileAsync(LevelData levelData)
@@ -81,8 +94,22 @@ namespace VehicleUnjam
             // Compute world position for each waiting slot
             Vector3 pos = _waitingContainer.position + new Vector3((index - half) * Constants.CELL_DISTANCE, 0f, 0f);
             GameObject prefab = GetWaitingTilePrefab();
-            await InstantiateAsync(prefab, _waitingContainer, pos, Quaternion.identity).ToUniTask();
-            _waitingTilePositions.Add(pos);
+            GameObject[] loaded = await InstantiateAsync(prefab, _waitingContainer, pos, Quaternion.identity).ToUniTask();
+            _waitingTiles.Add(loaded[0].transform);
+        }
+
+        public async UniTask AddNewWaitingTile()
+        {
+            int size = _waitingTiles.Count + 1;
+            float half = (size - 1) / 2f;
+            await SpawnWaitingTileAsync(_waitingTiles.Count, half);
+            for (int i = 0; i < _waitingTiles.Count; i++)
+            {
+                Transform t = _waitingTiles[i];
+                Vector3 pos = _waitingContainer.position + new Vector3((i - half) * Constants.CELL_DISTANCE, 0f, 0f);
+                t.position = pos;
+            }
+            NewWaitingTileAdded?.Invoke(_waitingTiles.Count);
         }
 
         /// <summary>
@@ -128,7 +155,7 @@ namespace VehicleUnjam
                     if (travelDictionary.ContainsKey(next)) continue;
                     
                     Cell c = _cellGrid[next.x, next.y];
-                    if (c == null) continue;
+                    if (!c) continue;
                     if (c.data.isOccupied) continue;
                     if (Utilities.IsCellTypeIgnoreOccupied(c.data.cellType)) continue;
                     
@@ -184,20 +211,13 @@ namespace VehicleUnjam
         {
             return Utilities.IsInBounds(_rows, _columns, row, col);
         }
-        
-        private bool ShouldSpawnCellAt(LevelData levelData, int row, int col)
-        {
-            CellData cellData = levelData.GetCellData(row, col);
-            
-            // TODO: Variant type handle
-            return cellData.cellType != eCellType.None;
-        }
 
         public void MarkCellEmpty(int row, int column)
         {
             if (IsValidGridPosition( row, column))
             {
                 _cellGrid[row, column].data.isOccupied = false;
+                CellMarkedEmpty?.Invoke(row, column);
             }
         }
 
@@ -206,31 +226,24 @@ namespace VehicleUnjam
             if (IsValidGridPosition( row, column))
             {
                 _cellGrid[row, column].data.isOccupied = true;
+                CellMarkedOccupied?.Invoke(row, column);
             }
         }
 
         public Cell GetCellAtGridPosition(int row, int column)
         {
-            if (IsValidGridPosition( row, column)) return _cellGrid[row, column];
-            return null;
+            return IsValidGridPosition(row, column) ? _cellGrid[row, column] : null;
         }
 
-        public Vector2Int? GetGridPositionOfCell(Cell c)
+        public (int row, int column) GetGridPositionOfCell(Cell c)
         {
-            if (_cellPositionMap.TryGetValue(c, out Vector2Int pos)) return pos;
-            return null;
-        }
-
-        public int GetWaitingTileIndexAtPosition(Vector3 position)
-        {
-            for (int i = 0; i < _waitingTilePositions.Count; i++) if (_waitingTilePositions[i] == position) return i;
-            return -1;
+            return _cellPositionMap.GetValueOrDefault(c, (-1, -1));
         }
 
         public Vector3? GetPositionOfWaitingTileIndex(int index)
         {
-            if (index < 0 || index >= _waitingTilePositions.Count) return null;
-            return _waitingTilePositions[index];
+            if (index < 0 || index >= _waitingTiles.Count) return null;
+            return _waitingTiles[index].position;
         }
     }
 }

@@ -1073,11 +1073,14 @@ namespace VehicleUnjam.LevelEditor
                 {
                     CellData cell = _currentCells[index];
                     cell.cellType = newType;
-                    cell.extraData = new TunnelCellData
+                    switch (newType)
                     {
-                        direction = 0,
-                        passengers = new()
-                    };
+                        case eCellType.Tunnel:
+                        {
+                            cell.extraData = new TunnelCellData();
+                            break;
+                        }
+                    }
                     _currentCells[index] = cell;
                     CellImageItem item = cellEditorContent.GetChild(index).GetComponent<CellImageItem>();
                     item.SetSpriteByType(newType);
@@ -1086,11 +1089,14 @@ namespace VehicleUnjam.LevelEditor
                 case eEditorMode.AddClone:
                 {
                     _cloneTemplateCell.cellType = newType;
-                    _cloneTemplateCell.extraData ??= new TunnelCellData
+                    switch (newType)
                     {
-                        direction = 0,
-                        passengers = new()
-                    };
+                        case eCellType.Tunnel:
+                        {
+                            _cloneTemplateCell.extraData ??= new TunnelCellData();
+                            break;
+                        }
+                    }
                     break;
                 }
             }
@@ -1351,9 +1357,13 @@ namespace VehicleUnjam.LevelEditor
                 if (!vehicleByColor.ContainsKey(kv.Key)) sb.AppendLine($"[!] Có passenger màu {kv.Key} nhưng không có xe");
             }
 
-            int soDu = totalPassengers % totalVehicles;
-            if (soDu != 0)
-                sb.AppendLine($"[!] Số lượng hành khách không chia hết cho số xe {totalPassengers}/{totalVehicles} (dư {soDu} hành khách)");
+            if (totalVehicles != 0)
+            {
+                int soDu = totalPassengers % totalVehicles;
+                if (soDu != 0)
+                    sb.AppendLine(
+                        $"[!] Số lượng hành khách không chia hết cho số xe {totalPassengers}/{totalVehicles} (dư {soDu} hành khách)");
+            }
             return sb.ToString();
         }
     }

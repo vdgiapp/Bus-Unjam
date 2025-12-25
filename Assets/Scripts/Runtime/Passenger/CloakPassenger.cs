@@ -6,9 +6,6 @@ namespace VehicleUnjam
 {
     public class CloakPassenger : Passenger
     {
-        // Data
-        [HideInInspector] public CloakPassengerData cloakData;
-
         // View
         [SerializeField] private GameObject _cloakObject;
         [SerializeField] private float _cloakOffScaleY = 0.1f;
@@ -32,6 +29,11 @@ namespace VehicleUnjam
             _cloakOnTween?.Kill();
             _cloakOnTween = _cloakObject.transform.DOScaleY(_cloakOnScaleY, _tweenDuration);
             return _cloakOnTween;
+        }
+
+        public void SetCloakImmediately(bool isOn)
+        {
+            _cloakObject.transform.localScale = new Vector3(1f, isOn ? _cloakOnScaleY : _cloakOffScaleY, 1f);
         }
         
         public void ToggleCloak(bool toggle)

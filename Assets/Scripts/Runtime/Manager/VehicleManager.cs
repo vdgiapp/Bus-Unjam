@@ -147,7 +147,7 @@ namespace VehicleUnjam
             }
             
             // Configure vehicle
-            vehicle.data = data;
+            vehicle.InitData(data);
             vehicle.SetColor(GameManager.GetColorByType(data.colorType));
             
             // Position vehicle

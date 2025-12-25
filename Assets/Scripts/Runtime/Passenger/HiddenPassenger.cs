@@ -31,5 +31,12 @@ namespace VehicleUnjam
             _textTmp.gameObject.SetActive(true);
             return _concealTween;
         }
+        
+        public void SetConcealedImmediately()
+        {
+            _isRevealed = false;
+            _textTmp.gameObject.SetActive(true);
+            SetColor(_hiddenColor);
+        }
     }
 }

@@ -34,19 +34,12 @@ namespace VehicleUnjam
         // Raycast
         public const float MAX_RAYCAST_DISTANCE = 1000f;
         
-        // Tag
-        public const string TAG_NAME_MOVING = "Moving";
-        public const string TAG_NAME_WAITING = "Waiting";
-        public const string TAG_NAME_SITTING = "Sitting";
-        
         // Layer
         public const string LAYER_NAME_PASSENGER = "Passenger";
         public const string LAYER_NAME_CELL = "Cell";
         public const string LAYER_NAME_WAITING_TILE = "WaitingTile";
         
         // Editor
-        public const string LEVEL_EDITOR_NAME = "Level Editor";
-        public const string LEVEL_EDITOR_WINDOW_MENU = "Tools/Vehicle Unjam/" + LEVEL_EDITOR_NAME;
         public const string LEVEL_FOLDER_PATH = "Assets/Data/Levels";
     }
 }

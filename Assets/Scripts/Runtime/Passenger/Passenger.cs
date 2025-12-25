@@ -6,7 +6,7 @@ namespace VehicleUnjam
     public class Passenger : MonoBehaviour
     {
         // Data
-        [HideInInspector] public PassengerData data;
+        public PassengerData data { get; private set; }
 
         // View
         [SerializeField] private Animator _animator;
@@ -38,6 +38,11 @@ namespace VehicleUnjam
             _moveResetRotationTween = null;
             _shakeTween?.Kill();
             _shakeTween = null;
+        }
+
+        public void InitData(PassengerData initData)
+        {
+            data = initData;
         }
 
         public void SetColor(Color color)

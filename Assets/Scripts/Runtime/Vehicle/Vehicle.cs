@@ -6,7 +6,7 @@ namespace VehicleUnjam
     public class Vehicle : MonoBehaviour
     {
         // Data
-        [HideInInspector] public VehicleData data;
+        public VehicleData data { get; private set; }
         
         // View
         [SerializeField] private Animator _animator;
@@ -32,6 +32,11 @@ namespace VehicleUnjam
             _moveTween = null;
             _moveLocalTween?.Kill();
             _moveLocalTween = null;
+        }
+
+        public void InitData(VehicleData initData)
+        {
+            data = initData;
         }
 
         public void SetColor(Color color)
