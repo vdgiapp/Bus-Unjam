@@ -66,7 +66,7 @@ namespace VehicleUnjam
         {
             _moveSequence.Kill();
             _moveSequence = DOTween.Sequence();
-            float duration = Vector3.Distance(transform.position, worldPosition) / speed;
+            float duration = Vector3.Distance(worldPosition, transform.position) / speed;
             _moveSequence.AppendCallback(() => FaceTo(worldPosition));
             _moveSequence.Join(transform.DOMove(worldPosition, duration).SetEase(ease));
             _moveSequence.onComplete += ResetRotation;
@@ -81,7 +81,7 @@ namespace VehicleUnjam
             Vector3 previousPosition = transform.position;
             foreach (var pathPosition in path)
             {
-                float duration = Vector3.Distance(previousPosition, pathPosition) / speed;
+                float duration = Vector3.Distance(pathPosition, previousPosition) / speed;
                 _moveSequence.AppendCallback(() => FaceTo(pathPosition));
                 _moveSequence.Append(transform.DOMove(pathPosition, duration).SetEase(ease));
                 previousPosition = pathPosition;
@@ -138,7 +138,7 @@ namespace VehicleUnjam
         Waiting,
         MovingToVehicle,
         Sitting,
-        Inactive, // Destroyed
+        Inactive, // Destroyed or inactive
     }
 
 }

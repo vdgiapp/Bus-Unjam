@@ -163,6 +163,7 @@ namespace VehicleUnjam
 
         public Vehicle GetCurrentVehicle()
         {
+            if (_currentVehicleIndex < 0 || _currentVehicleIndex >= _vehicleList.Count) return null;
             return _vehicleList[_currentVehicleIndex];
         }
     }

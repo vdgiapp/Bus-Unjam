@@ -9,7 +9,6 @@ namespace VehicleUnjam
     {
         public static GameManager instance { get; private set; }
 
-        [SerializeField] private string _levelFolderPath = Constants.LEVEL_FOLDER_PATH;
         [SerializeField] private ThemeSettingsSO _themes;
         [SerializeField] private ColorSettingsSO _colors;
 

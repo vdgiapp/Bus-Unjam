@@ -11,7 +11,7 @@ namespace VehicleUnjam
 
         public void SetBombTime(int time)
         {
-            if (time <= 0)
+            if (time < 0)
             {
                 _textTmp.text = " ";
                 ToggleBomb(false);

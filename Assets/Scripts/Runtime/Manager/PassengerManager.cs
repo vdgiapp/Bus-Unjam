@@ -96,7 +96,6 @@ namespace VehicleUnjam
                     break;
                 }
             }
-            
             _passengerGrid[row, col] = passenger;
             _passengerPositionMap.Add(passenger, (row, col));
         }
@@ -130,10 +129,7 @@ namespace VehicleUnjam
 
         private void AddPassengerByType(ePassengerType type, Passenger passenger)
         {
-            if (!_passengerByType.ContainsKey(type))
-            {
-                _passengerByType.Add(type, new List<Passenger>());
-            }
+            if (!_passengerByType.ContainsKey(type)) _passengerByType[type] = new List<Passenger>();
             _passengerByType[type].Add(passenger);
         }
         
@@ -150,12 +146,6 @@ namespace VehicleUnjam
         private bool IsValidLevelData(LevelData levelData)
         {
             return levelData.passengers is { Count: > 0 };
-        }
-        
-        public bool IsPassengerBusy(Passenger passenger)
-        {
-            ePassengerState state = passenger.state;
-            return (state is not (ePassengerState.None or ePassengerState.Idle or ePassengerState.Inactive));
         }
         
         public Passenger GetPassengerAtGridPosition(int row, int column)

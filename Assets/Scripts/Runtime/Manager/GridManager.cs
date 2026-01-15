@@ -84,7 +84,6 @@ namespace VehicleUnjam
                     break;
                 }
             }
-
             _cellGrid[row, col] = cell;
             _cellPositionMap.Add(cell, (row, col));
         }
