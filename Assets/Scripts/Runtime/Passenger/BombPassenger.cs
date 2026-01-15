@@ -6,8 +6,8 @@ namespace VehicleUnjam
     public class BombPassenger : Passenger
     {
         // View
-        [SerializeField] private GameObject _bombObject;
-        [SerializeField] private TMP_Text _textTmp;
+        [SerializeField] protected GameObject _bombObject;
+        [SerializeField] protected TMP_Text _textTmp;
 
         public void SetBombTime(int time)
         {
@@ -26,6 +26,7 @@ namespace VehicleUnjam
         public void ToggleBomb(bool toggle)
         {
             _bombObject.SetActive(toggle);
+            _textTmp.gameObject.SetActive(toggle);
         }
     }
 }

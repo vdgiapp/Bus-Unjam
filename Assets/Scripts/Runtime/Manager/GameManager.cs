@@ -26,7 +26,7 @@ namespace VehicleUnjam
             return instance._colors.GetColorByType(type);
         }
         
-        public static ThemeData? GetCurrentTheme()
+        public static ThemeData GetCurrentTheme()
         {
             return instance._themes.GetDataByType(instance._selectedThemeType);
         }

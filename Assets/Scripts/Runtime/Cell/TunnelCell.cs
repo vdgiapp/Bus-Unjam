@@ -1,18 +1,21 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace VehicleUnjam
 {
     public class TunnelCell : Cell
     {
+        // Data
+        public List<Passenger> passengers { get; private set; } = new();
+        
         // View
-        [SerializeField] private GameObject _tunnelObject;
-        [SerializeField] private TMP_Text _textTmp;
+        [SerializeField] protected GameObject _tunnelObject;
+        [SerializeField] protected TMP_Text _textTmp;
         
         public void SetTunnelCount(int count)
         {
-            if (count <= 0) _textTmp.text = " ";
-            else _textTmp.text = count.ToString();
+            _textTmp.text = (count <= 0) ? " " : count.ToString();
         }
         
         public void SetTunnelDirection(int direction)

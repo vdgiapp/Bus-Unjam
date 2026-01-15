@@ -572,38 +572,17 @@
                 "passengerType": 0,
                 "extraData": null
             },
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
             {
                 "$id": 94,
                 "$type": 5,
-                "colorType": 1,
-                "passengerType": 0,
-                "extraData": null
+                "colorType": 0,
+                "passengerType": 3,
+                "extraData": {
+                    "$id": 95,
+                    "$type": "6|VehicleUnjam.BombPassengerData, Assembly-CSharp",
+                    "bombTime": 10
+                }
             },
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            {
-                "$id": 95,
-                "$type": 5,
-                "colorType": 3,
-                "passengerType": 0,
-                "extraData": null
-            },
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
-            $iref:89,
             {
                 "$id": 96,
                 "$type": 5,
@@ -611,149 +590,224 @@
                 "passengerType": 0,
                 "extraData": null
             },
-            $iref:89,
-            $iref:89
-        ]
-    },
-    "vehicles": {
-        "$id": 97,
-        "$type": "6|System.Collections.Generic.List`1[[VehicleUnjam.VehicleData, Assembly-CSharp]], mscorlib",
-        "$rlength": 9,
-        "$rcontent": [
             {
-                "$id": 98,
-                "$type": "7|VehicleUnjam.VehicleData, Assembly-CSharp",
+                "$id": 97,
+                "$type": 5,
                 "colorType": 0,
-                "occupied": {
-                    "$id": 99,
-                    "$type": "8|System.Boolean[], mscorlib",
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
+                "passengerType": 4,
+                "extraData": {
+                    "$id": 98,
+                    "$type": "7|VehicleUnjam.CloakPassengerData, Assembly-CSharp",
+                    "isRevealed": true
                 }
             },
             {
-                "$id": 100,
-                "$type": 7,
+                "$id": 99,
+                "$type": 5,
                 "colorType": 0,
-                "occupied": {
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 100,
+                "$type": 5,
+                "colorType": 1,
+                "passengerType": 4,
+                "extraData": {
                     "$id": 101,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
+                    "$type": 7,
+                    "isRevealed": false
                 }
             },
             {
                 "$id": 102,
-                "$type": 7,
+                "$type": 5,
                 "colorType": 0,
-                "occupied": {
-                    "$id": 103,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
-                }
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 103,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
             },
             {
                 "$id": 104,
-                "$type": 7,
-                "colorType": 3,
-                "occupied": {
-                    "$id": 105,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 2,
+                "extraData": null
+            },
+            {
+                "$id": 105,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 1,
+                "extraData": {
+                    "$id": 106,
+                    "$type": "8|VehicleUnjam.RopePassengerData, Assembly-CSharp",
+                    "ropeCount": 4
                 }
             },
             {
-                "$id": 106,
-                "$type": 7,
-                "colorType": 0,
-                "occupied": {
-                    "$id": 107,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
-                }
+                "$id": 107,
+                "$type": 5,
+                "colorType": 3,
+                "passengerType": 0,
+                "extraData": null
             },
             {
                 "$id": 108,
-                "$type": 7,
+                "$type": 5,
                 "colorType": 0,
-                "occupied": {
-                    "$id": 109,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
-                }
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 109,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
             },
             {
                 "$id": 110,
-                "$type": 7,
+                "$type": 5,
                 "colorType": 0,
-                "occupied": {
+                "passengerType": 4,
+                "extraData": {
                     "$id": 111,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
+                    "$type": 7,
+                    "isRevealed": false
                 }
             },
             {
                 "$id": 112,
-                "$type": 7,
+                "$type": 5,
                 "colorType": 0,
-                "occupied": {
-                    "$id": 113,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
-                }
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 113,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
             },
             {
                 "$id": 114,
-                "$type": 7,
-                "colorType": 1,
-                "occupied": {
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 4,
+                "extraData": {
                     "$id": 115,
-                    "$type": 8,
-                    "$plength": 3,
-                    "$pcontent": [
-                        false,
-                        false,
-                        false
-                    ]
+                    "$type": 7,
+                    "isRevealed": true
                 }
+            },
+            {
+                "$id": 116,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 117,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 2,
+                "extraData": null
+            },
+            {
+                "$id": 118,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 119,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 120,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 121,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
+            },
+            {
+                "$id": 122,
+                "$type": 5,
+                "colorType": 0,
+                "passengerType": 0,
+                "extraData": null
+            }
+        ]
+    },
+    "vehicles": {
+        "$id": 123,
+        "$type": "9|System.Collections.Generic.List`1[[VehicleUnjam.VehicleData, Assembly-CSharp]], mscorlib",
+        "$rlength": 9,
+        "$rcontent": [
+            {
+                "$id": 124,
+                "$type": "10|VehicleUnjam.VehicleData, Assembly-CSharp",
+                "colorType": 0
+            },
+            {
+                "$id": 125,
+                "$type": 10,
+                "colorType": 0
+            },
+            {
+                "$id": 126,
+                "$type": 10,
+                "colorType": 0
+            },
+            {
+                "$id": 127,
+                "$type": 10,
+                "colorType": 3
+            },
+            {
+                "$id": 128,
+                "$type": 10,
+                "colorType": 0
+            },
+            {
+                "$id": 129,
+                "$type": 10,
+                "colorType": 0
+            },
+            {
+                "$id": 130,
+                "$type": 10,
+                "colorType": 0
+            },
+            {
+                "$id": 131,
+                "$type": 10,
+                "colorType": 0
+            },
+            {
+                "$id": 132,
+                "$type": 10,
+                "colorType": 1
             }
         ]
     }

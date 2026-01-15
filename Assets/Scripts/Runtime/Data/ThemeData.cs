@@ -13,8 +13,8 @@ namespace VehicleUnjam
         [SerializeField] private CellSettingsSO _cellSettings;
         
         public GameObject environmentPrefab => _environmentPrefab;
-        public GameObject waitingTilePrefab() => _waitingTilePrefab;
-        public GameObject vehiclePrefab() => _vehiclePrefab;
+        public GameObject waitingTilePrefab => _waitingTilePrefab;
+        public GameObject vehiclePrefab => _vehiclePrefab;
         
         public GameObject GetCellPrefabByType(eCellType type)
         {

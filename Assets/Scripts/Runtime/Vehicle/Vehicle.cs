@@ -7,26 +7,28 @@ namespace VehicleUnjam
     {
         // Data
         public VehicleData data { get; private set; }
+        public bool[] seatOccupied { get; private set; } = { false, false, false };
+        public Passenger[] reservedPassengers { get; private set; } = { null, null, null };
         
         // View
-        [SerializeField] private Animator _animator;
-        [SerializeField] private MeshRenderer _meshRenderer;
-        [SerializeField] private int _specifiedColorMaterialIndex;
-        [SerializeField] private Transform _doorTransform;
-        [SerializeField] private Transform[] _seatTransforms = new Transform[Constants.VEHICLE_SEAT_SLOTS];
+        [SerializeField] protected Animator _animator;
+        [SerializeField] protected MeshRenderer _meshRenderer;
+        [SerializeField] protected int _specifiedColorMaterialIndex;
+        [SerializeField] protected Transform _doorTransform;
+        [SerializeField] protected Transform[] _seatTransforms = new Transform[Constants.VEHICLE_SEAT_SLOTS];
         
-        private MaterialPropertyBlock _mpbColor;
+        protected MaterialPropertyBlock _mpbColor;
 
-        private Tween _moveLocalTween;
-        private Tween _moveTween;
+        protected Tween _moveLocalTween;
+        protected Tween _moveTween;
         
-        private void Awake()
+        protected void Awake()
         {
             _mpbColor = new MaterialPropertyBlock();
             _meshRenderer.GetPropertyBlock(_mpbColor, _specifiedColorMaterialIndex);
         }
 
-        private void OnDestroy()
+        protected void OnDestroy()
         {
             _moveTween?.Kill();
             _moveTween = null;
@@ -37,6 +39,20 @@ namespace VehicleUnjam
         public void InitData(VehicleData initData)
         {
             data = initData;
+        }
+
+        public bool SetSeatOccupied(int seatIndex, bool isOccupied)
+        {
+            if (seatIndex < 0 || seatIndex >= seatOccupied.Length) return false;
+            seatOccupied[seatIndex] = isOccupied;
+            return true;
+        }
+        
+        public bool SetReservedPassenger(int seatIndex, Passenger passenger)
+        {
+            if (seatIndex < 0 || seatIndex >= reservedPassengers.Length) return false;
+            reservedPassengers[seatIndex] = passenger;
+            return true;
         }
 
         public void SetColor(Color color)

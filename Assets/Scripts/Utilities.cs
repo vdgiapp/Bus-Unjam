@@ -18,9 +18,7 @@ namespace VehicleUnjam
         
         public static bool IsCellTypeIgnoreOccupied(eCellType type)
         {
-            return type is
-                eCellType.None
-                or eCellType.Tunnel;
+            return type is eCellType.None or eCellType.Tunnel;
         }
         
         public static bool IsInBounds(int rows, int columns, int r, int c)

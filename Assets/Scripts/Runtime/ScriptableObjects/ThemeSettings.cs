@@ -8,10 +8,10 @@ namespace VehicleUnjam
     {
         [SerializeField]
         private List<KeyValue<eThemeType, ThemeData>> _themeList;
-        public ThemeData? GetDataByType(eThemeType type)
+        public ThemeData GetDataByType(eThemeType type)
         {
             foreach (var kv in _themeList) if (kv.Key == type) return kv.Value;
-            return null;
+            return default;
         }
     }
 }

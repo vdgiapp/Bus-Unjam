@@ -5,8 +5,8 @@ namespace VehicleUnjam
     public class RopePassenger : Passenger
     {
         // View
-        [SerializeField] private GameObject[] _ropeObjects;
-        [SerializeField] private Transform _ropeRoot;
+        [SerializeField] protected GameObject[] _ropeObjects;
+        [SerializeField] protected Transform _ropeRoot;
 
         public void SetRopeCount(int count)
         {

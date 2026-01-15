@@ -7,13 +7,13 @@ namespace VehicleUnjam
     public class CloakPassenger : Passenger
     {
         // View
-        [SerializeField] private GameObject _cloakObject;
-        [SerializeField] private float _cloakOffScaleY = 0.1f;
-        [SerializeField] private float _cloakOnScaleY = 1f;
-        [SerializeField] private float _tweenDuration = 0.2f;
+        [SerializeField] protected GameObject _cloakObject;
+        [SerializeField] protected float _cloakOffScaleY = 0.1f;
+        [SerializeField] protected float _cloakOnScaleY = 1f;
+        [SerializeField] protected float _tweenDuration = 0.2f;
         
-        private Tween _cloakOffTween;
-        private Tween _cloakOnTween;
+        protected Tween _cloakOffTween;
+        protected Tween _cloakOnTween;
 
         public Tween CloakOff()
         {

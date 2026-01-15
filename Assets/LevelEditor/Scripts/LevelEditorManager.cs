@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using OdinSerializer = Sirenix.OdinSerializer;
 
@@ -49,6 +51,7 @@ namespace VehicleUnjam.LevelEditor
         public string levelFolderPath = Constants.LEVEL_FOLDER_PATH;
         public ColorSettingsSO colors;
         
+        public GameObject levelEditorCanvas;
         public Button saveAllButton;
         public Button addNewLevelButton;
         public Button removeLevelButton;
@@ -480,7 +483,6 @@ namespace VehicleUnjam.LevelEditor
             VehicleData newVehicle = new VehicleData
             {
                 colorType = eColorType.Red,
-                occupied = new[] { false, false, false }
             };
             
             _currentVehicles.Add(newVehicle);
@@ -995,6 +997,24 @@ namespace VehicleUnjam.LevelEditor
                 {
                     PassengerData passenger = _currentPassengers[index];
                     passenger.passengerType = newType;
+                    switch (passenger.passengerType)
+                    {
+                        case ePassengerType.Cloak:
+                        {
+                            HandleCloakRevealChanged(index, true);
+                            break;
+                        }
+                        case ePassengerType.Bomb:
+                        {
+                            HandleBombTimeChanged(index, 10);
+                            break;
+                        }
+                        case ePassengerType.Rope:
+                        {
+                            HandleRopeCountChanged(index, 3);
+                            break;
+                        }
+                    }
                     _currentPassengers[index] = passenger;
                     PassengerImageItem item = passengerEditorContent.GetChild(index).GetComponent<PassengerImageItem>();
                     item.SetSpriteByType(newType);
@@ -1033,8 +1053,8 @@ namespace VehicleUnjam.LevelEditor
             {
                 case eEditorMode.Select:
                 {
-                    PassengerData passenger  = _currentPassengers[index];
-                    passenger .extraData = new BombPassengerData { bombTime = bombTime };;
+                    PassengerData passenger = _currentPassengers[index];
+                    passenger.extraData = new BombPassengerData { bombTime = bombTime };;
                     _currentPassengers[index] = passenger;
                     break;
                 }

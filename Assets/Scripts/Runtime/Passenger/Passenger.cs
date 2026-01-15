@@ -1,48 +1,49 @@
-﻿using DG.Tweening;
+﻿using System;
+using DG.Tweening;
 using UnityEngine;
 
 namespace VehicleUnjam
 {
     public class Passenger : MonoBehaviour
     {
+        public static event Action<Passenger, ePassengerState, ePassengerState> PassengerStateChanged;
+        
         // Data
-        public PassengerData data { get; private set; }
+        public PassengerData data { get; protected set; }
+        public ePassengerState state { get; protected set; } = ePassengerState.None;
 
         // View
-        [SerializeField] private Animator _animator;
-        [SerializeField] private SkinnedMeshRenderer _skinnedMeshRenderer;
-        [SerializeField] private int _specifiedColorMaterialIndex;
+        [SerializeField] protected Animator _animator;
+        [SerializeField] protected SkinnedMeshRenderer _skinnedMeshRenderer;
+        [SerializeField] protected int _specifiedColorMaterialIndex;
     
-        private MaterialPropertyBlock _mpbColor;
+        protected MaterialPropertyBlock _mpbColor;
+        protected bool _isShaking = false;
         
-        private bool _isShaking = false;
+        protected Sequence _moveSequence;
 
-        private Tween _moveTween;
-        private Tween _moveRotationTween;
-        private Tween _moveResetRotationTween;
-        private Tween _shakeTween;
-
-        private void Awake()
+        protected virtual void Awake()
         {
             _mpbColor = new MaterialPropertyBlock();
             _skinnedMeshRenderer.GetPropertyBlock(_mpbColor, _specifiedColorMaterialIndex);
         }
 
-        private void OnDestroy()
-        {
-            _moveTween?.Kill();
-            _moveTween = null;
-            _moveRotationTween?.Kill();
-            _moveRotationTween = null;
-            _moveResetRotationTween?.Kill();
-            _moveResetRotationTween = null;
-            _shakeTween?.Kill();
-            _shakeTween = null;
-        }
-
         public void InitData(PassengerData initData)
         {
             data = initData;
+        }
+        
+        public void SetState(ePassengerState newState)
+        {
+            if (state == newState) return;
+            ePassengerState oldState = state;
+            state = newState;
+            PassengerStateChanged?.Invoke(this, oldState, newState);
+        }
+        
+        public void SetStateWithoutNotify(ePassengerState newState)
+        {
+            state = newState;
         }
 
         public void SetColor(Color color)
@@ -58,26 +59,36 @@ namespace VehicleUnjam
         
         public void TriggerSittingAnimation(bool isRunning = true)
         {
-            if (!isRunning) return;
             _animator.SetTrigger(Constants.ANIMATOR_IS_SITTING_ID);
         }
 
-        public Tween MoveTo(Vector3 worldPosition, float duration, Ease ease = Ease.Linear)
+        public Sequence MoveTo(Vector3 worldPosition, float speed, Ease ease = Ease.Linear)
         {
-            Vector3 target = new(worldPosition.x, transform.position.y, worldPosition.z);
-            Vector3 direction = target - transform.position;
-            if (direction.sqrMagnitude > 0.0001f)
+            _moveSequence.Kill();
+            _moveSequence = DOTween.Sequence();
+            float duration = Vector3.Distance(transform.position, worldPosition) / speed;
+            _moveSequence.AppendCallback(() => FaceTo(worldPosition));
+            _moveSequence.Join(transform.DOMove(worldPosition, duration).SetEase(ease));
+            _moveSequence.onComplete += ResetRotation;
+            _moveSequence.SetAutoKill(true);
+            return _moveSequence;
+        }
+        
+        public Sequence MovePath(Vector3[] path, float speed, Ease ease = Ease.Linear)
+        {
+            _moveSequence.Kill();
+            _moveSequence = DOTween.Sequence();
+            Vector3 previousPosition = transform.position;
+            foreach (var pathPosition in path)
             {
-                Quaternion lookRot = Quaternion.LookRotation(direction);
-                _moveRotationTween?.Kill();
-                _moveRotationTween = transform.DORotateQuaternion(lookRot, Constants.PASSENGER_ROTATE_DURATION).SetEase(Ease.OutQuad);
-                _moveRotationTween.SetAutoKill(true);
+                float duration = Vector3.Distance(previousPosition, pathPosition) / speed;
+                _moveSequence.AppendCallback(() => FaceTo(pathPosition));
+                _moveSequence.Append(transform.DOMove(pathPosition, duration).SetEase(ease));
+                previousPosition = pathPosition;
             }
-            _moveTween?.Kill();
-            _moveTween = transform.DOMove(target, duration).SetEase(ease);
-            _moveTween.onComplete += ResetRotation;
-            _moveTween.SetAutoKill(true);
-            return _moveTween;
+            _moveSequence.onComplete += ResetRotation;
+            _moveSequence.SetAutoKill(true);
+            return _moveSequence;
         }
 
         public void Shake()
@@ -87,26 +98,47 @@ namespace VehicleUnjam
             float s = Constants.PASSENGER_SHAKE_STRENGTH;
             float d = Constants.PASSENGER_SHAKE_DURATION;
             int v = Constants.PASSENGER_SHAKE_VIBRATO;
-            _shakeTween?.Kill();
-            _shakeTween = DOTween.Sequence()
+            Sequence seq = DOTween.Sequence()
                 .Append(transform.DOLocalRotate(new Vector3(0, -s, 0), d / (v * 2)).SetEase(Ease.InOutQuad))
                 .Append(transform.DOLocalRotate(new Vector3(0, s, 0), d / v).SetEase(Ease.InOutQuad))
                 .Append(transform.DOLocalRotate(new Vector3(0, -s, 0), d / v).SetEase(Ease.InOutQuad))
                 .Append(transform.DOLocalRotate(Vector3.zero, d / (s * 2)).SetEase(Ease.InOutQuad));
-            _shakeTween.onComplete += ResetShaking;
-            _shakeTween.SetAutoKill(true);
+            seq.onComplete += ResetShaking;
+            seq.SetAutoKill(true);
         }
 
-        private void ResetRotation()
+        protected void FaceTo(Vector3 target)
         {
-            _moveResetRotationTween?.Kill();
-            _moveResetRotationTween = transform.DOLocalRotateQuaternion(Quaternion.identity, Constants.PASSENGER_ROTATE_DURATION);
-            _moveResetRotationTween.SetAutoKill(true);
+            Vector3 direction = target - transform.position;
+            if (direction.sqrMagnitude > 0.0001f)
+            {
+                Quaternion lookRot = Quaternion.LookRotation(direction);
+                transform.DORotateQuaternion(lookRot, Constants.PASSENGER_ROTATE_DURATION).SetEase(Ease.OutQuad);
+            }
         }
 
-        private void ResetShaking()
+        protected void ResetRotation()
+        {
+            transform.DOLocalRotateQuaternion(Quaternion.identity, Constants.PASSENGER_ROTATE_DURATION);
+        }
+
+        protected void ResetShaking()
         {
             _isShaking = false;
         }
     }
+    
+    public enum ePassengerState
+    {
+        None = -1, // Didn't spawn
+        Idle,
+        MovingToFirstRow,
+        FirstRow,
+        MovingToQueue,
+        Waiting,
+        MovingToVehicle,
+        Sitting,
+        Inactive, // Destroyed
+    }
+
 }

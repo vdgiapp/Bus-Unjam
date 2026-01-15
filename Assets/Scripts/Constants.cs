@@ -16,20 +16,25 @@ namespace VehicleUnjam
         
         // Cell
         public const float CELL_DISTANCE = 0.6f;
+        public const string CELL_GAMEOBJECT_NAME = "Cell";
+        public const string WAITING_TILE_GAMEOBJECT_NAME = "WaitingTile";
         
         // Passenger
+        public const float PASSENGER_OUT_TUNNEL_DURATION = 0.75f;
         public const float PASSENGER_SHAKE_STRENGTH = 15f;
         public const float PASSENGER_SHAKE_DURATION = 0.4f;
         public const int PASSENGER_SHAKE_VIBRATO = 3;
         public const float PASSENGER_ROTATE_DURATION = 0.2f;
-        public const float PASSENGER_MOVE_SPEED = 2f;
+        public const float PASSENGER_MOVE_SPEED = 1.75f;
         public const int PASSENGER_MAX_ROPE_COUNT = 4;
+        public const string PASSENGER_GAMEOBJECT_NAME = "Passenger";
 
         // Vehicle
         public const int VEHICLE_SEAT_SLOTS = 3;
         public const float VEHICLE_MOVE_DURATION = 2.0f;
         public const float VEHICLE_DISTANCE = 4.3f;
-        public const int VEHICLE_POOL_SIZE = 5;
+        public const int VEHICLE_ACTIVE_SIZE = 5;
+        public const string VEHICLE_GAMEOBJECT_NAME = "Vehicle";
         
         // Raycast
         public const float MAX_RAYCAST_DISTANCE = 1000f;

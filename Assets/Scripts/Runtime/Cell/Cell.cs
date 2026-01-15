@@ -8,7 +8,7 @@ namespace VehicleUnjam
         public CellData data { get; private set; }
         
         // View
-        [SerializeField] private Animator _animator;
+        [SerializeField] protected Animator _animator;
 
         public void InitData(CellData initData)
         {

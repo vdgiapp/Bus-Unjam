@@ -46,10 +46,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f0801da22a44b45af877fdab7b4ce15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  data:
-    colorType: 0
-    passengerType: 0
-    extraDataJson: 
   _animator: {fileID: 7128810996934944009}
   _skinnedMeshRenderer: {fileID: 8191471728803981450}
   _specifiedColorMaterialIndex: 0
@@ -703,11 +699,11 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7751996367803956135, guid: fbf6a4208b8ac49c7bba60e54292bec4, type: 3}
-      propertyPath: m_Materials.Array.data[1]
+      propertyPath: 'm_Materials.Array.data[1]'
       value: 
       objectReference: {fileID: 2100000, guid: b9d224511c652904a8f3bca69f8bfc43, type: 2}
     - target: {fileID: 7751996367803956135, guid: fbf6a4208b8ac49c7bba60e54292bec4, type: 3}
-      propertyPath: m_Materials.Array.data[2]
+      propertyPath: 'm_Materials.Array.data[2]'
       value: 
       objectReference: {fileID: 2100000, guid: b9d224511c652904a8f3bca69f8bfc43, type: 2}
     - target: {fileID: 7776229726456038893, guid: fbf6a4208b8ac49c7bba60e54292bec4, type: 3}
@@ -761,7 +757,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
 --- !u!95 &7128810996934944009
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -775,6 +771,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
